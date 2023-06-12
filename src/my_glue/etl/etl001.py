@@ -1,0 +1,43 @@
+from awsglue.context import DataFrame, GlueContext
+from boto3 import client as s3_client
+from pyspark.context import SparkContext
+
+from my_glue.common.base import Base
+from my_glue.common.base import JobConfig
+from my_glue.common.input_source import InputFile
+from my_glue.common.output_source import OutputFile
+
+
+class Etl(Base):
+    def __init__(self, context: GlueContext, s3: s3_client, config: JobConfig) -> None:
+        super().__init__(context, s3, config)
+
+    def handle_data(self) -> DataFrame:
+        sql = """
+                SELECT
+                    user_view.id,
+                    user_view.name,
+                    user_view.age,
+                    user_view.birthday,
+                    concat(YEAR(user_view.birthday),LPAD(MONTH(user_view.birthday), 2, 0)) AS year_month,
+                    concat(
+                        address_view.key1,
+                        '-',
+                        address_view.key2,
+                        '-',
+                        address_view.key3
+                    ) AS address
+                FROM
+                    user_view
+                    JOIN address_view ON user_view.address_code = address_view.address_code
+            """
+        return self.context.spark_session.sql(sql)
+
+
+if __name__ == "__main__":
+    glue_context = GlueContext(SparkContext())
+    s3 = s3_client("s3")
+    config = JobConfig(input_source=[InputFile(glue_context, s3, "ryozen-glue", "pysql/user.csv", "user_view"),
+                                     InputFile(glue_context, s3, "ryozen-glue", "pysql/address.csv", "address_view")],
+                       output_source=OutputFile(glue_context, s3, "ryozen-glue", "pysql/output"))
+    Etl(glue_context, s3, config).run()

@@ -1,0 +1,24 @@
+[tool.poetry]
+name = "my_glue"
+version = "0.1.0"
+description = ""
+authors = ["liangszzz <liang-shan@outlook.com>"]
+readme = "README.md"
+packages = [{include = "my_glue", from = "src"}]
+
+[tool.poetry.dependencies]
+python = "^3.7"
+pytest-mock = "^3.10.0"
+pytest-cov = "^4.1.0"
+pytz = "^2023.3"
+awsglue3-local = "^1.0.0"
+pyspark = "^3.4.0"
+awscli = "^1.27.151"
+boto3 = "^1.26.151"
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^7.3.1"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

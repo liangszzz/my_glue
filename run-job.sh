@@ -1,0 +1,1 @@
+clear && poetry run spark-submit src/my_glue/etl/etl001.py --JOB_NAME=xxx
