@@ -83,4 +83,4 @@ def upload_file(s3: s3_client, file_name: str, bucket: str, object_name: str) ->
         object_name = os.path.basename(file_name)
 
     # Upload the file
-    s3_client.upload_file(file_name, bucket, object_name)
+    s3.upload_file(file_name, bucket, object_name)
