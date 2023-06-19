@@ -2,13 +2,15 @@
 
 ## 1. Overview
 
-My Awesome Project!
+My glue Project!
 
 ## 2. Usage
 
 ### 2.1 init project
 
 ```bash
+pip install -U poetry
+
 poetry install -v
 ```
 
