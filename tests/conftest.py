@@ -37,12 +37,16 @@ def s3():
 @pytest.fixture(scope="function", autouse=True)
 def clear_sys_argv():
     sys.argv.clear()
+    sys.argv.append("--JOB_NAME")
+    sys.argv.append("test")
+    sys.argv.append("--JOB_NAME=test")
+
 
 
 @pytest.fixture(scope="session", autouse=True)
 def s3_init(s3):
     bucket = "test-resource"
-
+    local_path = "tests/resources"
     try:
         s3.head_bucket(Bucket=bucket)
         response = s3.list_objects_v2(Bucket=bucket)
@@ -59,10 +63,11 @@ def s3_init(s3):
         Bucket=bucket,
         CreateBucketConfiguration={"LocationConstraint": "ap-northeast-1"},
     )
-    for root, _, files in os.walk("tests/resources"):
+
+    for root, _, files in os.walk(local_path):
         for file in files:
             local_path = os.path.join(root, file)
-            s3_key = os.path.join("", os.path.relpath(local_path, "tests/resources"))
+            s3_key = os.path.join("", os.path.relpath(local_path, local_path))
             s3.upload_file(local_path, bucket, s3_key)
     response = s3.list_objects_v2(Bucket=bucket)
     if "Contents" in response:

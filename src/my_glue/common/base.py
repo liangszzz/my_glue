@@ -29,7 +29,7 @@ class Base(ABC):
 
     def load_data(self) -> None:
         for input in self.config.input_source:
-            input.get_data()
+            input.load_data()
 
     @abstractmethod
     def handle_data(self) -> DataFrame:

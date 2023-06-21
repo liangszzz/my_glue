@@ -9,7 +9,7 @@ import logging
 
 class InputSource(ABC):
     @abstractmethod
-    def get_data(self) -> DataFrame:
+    def load_data(self) -> DataFrame:
         """
         get data from source
         """
@@ -57,7 +57,7 @@ class InputFile(InputSource):
         self.logger = logging.getLogger(type(self).__name__)
         self.default_schema = default_schema
 
-    def get_data(self) -> DataFrame:
+    def load_data(self) -> DataFrame:
         file_exists = s3_utils.check_s3_file_or_dir_exist(
             self.s3, self.bucket, self.path
         )

@@ -20,8 +20,5 @@ class OutputFile(OutputSource):
 
 
 def test_new(glue_context, s3):
-    sys.argv.append("--JOB_NAME='test'")
-    sys.argv.append("--JOB_NAME")
-    sys.argv.append("test")
     config = JobConfig(output_source=OutputFile())
     TestBase(glue_context, s3, config).run()
