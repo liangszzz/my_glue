@@ -68,19 +68,23 @@ def rename_s3_file(s3: s3_client, bucket: str, old_path: str, new_path: str) -> 
     )
     s3.delete_object(Bucket=bucket, Key=old_path)
 
-
-def upload_file(s3: s3_client, file_name: str, bucket: str, object_name: str) -> None:
-    """Upload a file to an S3 bucket
-
-    :param file_name: File to upload
-    :param bucket: Bucket to upload to
-    :param object_name: S3 object name. If not specified then file_name is used
-    :return: True if file was uploaded, else False
+def uploadDirOrFile(local_path:str,s3:s3_client,bucket:str):
     """
+    Uploads a directory or file from the local machine to an S3 bucket recursively.
 
-    # If S3 object_name was not specified, use file_name
-    if object_name is None:
-        object_name = os.path.basename(file_name)
-
-    # Upload the file
-    s3.upload_file(file_name, bucket, object_name)
+    :param local_path: The path of the directory or file to upload.
+    :type local_path: str
+    :param s3: The S3 client object.
+    :type s3: boto3.client
+    :param bucket: The name of the destination S3 bucket.
+    :type bucket: str
+    :return: None
+    """
+    for root, _, files in os.walk(local_path):
+        for file in files:
+            file_path = os.path.join(root, file)
+            if os.path.isfile(file_path):
+                s3_key = os.path.join("", os.path.relpath(file_path, local_path))
+                s3.upload_file(file_path, bucket, s3_key)
+            else:
+                uploadDirOrFile(file_path,s3,bucket)

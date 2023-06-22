@@ -1,4 +1,5 @@
 import os
+from typing import Any
 import pytest
 from awsglue.context import GlueContext
 from pyspark.sql import SparkSession
@@ -6,7 +7,7 @@ import sys
 from boto3 import client as s3_client
 
 
-@pytest.fixture(scope="session", autouse=True)
+@pytest.fixture(scope="function")
 def glue_context():
     spark_context = (
         SparkSession.builder.config(
@@ -22,7 +23,7 @@ def glue_context():
     return GlueContext(spark_context)
 
 
-@pytest.fixture(scope="session", autouse=True)
+@pytest.fixture(scope="function")
 def s3():
     return s3_client(
         "s3",
@@ -43,10 +44,18 @@ def clear_sys_argv():
 
 
 
-@pytest.fixture(scope="session", autouse=True)
-def s3_init(s3):
+@pytest.fixture(scope="function",autouse=True)
+def s3_init(local_path:str= "tests/resources/input"):
+    print("--------------------------start s3 init---------------------------")
+    s3=s3_client(
+        "s3",
+        endpoint_url="http://localstack:4566",
+        aws_access_key_id="test",
+        aws_secret_access_key="test",
+        region_name="ap-northeast-1",
+        use_ssl=False,
+    )
     bucket = "test-resource"
-    local_path = "tests/resources"
     try:
         s3.head_bucket(Bucket=bucket)
         response = s3.list_objects_v2(Bucket=bucket)
@@ -64,11 +73,7 @@ def s3_init(s3):
         CreateBucketConfiguration={"LocationConstraint": "ap-northeast-1"},
     )
 
-    for root, _, files in os.walk(local_path):
-        for file in files:
-            local_path = os.path.join(root, file)
-            s3_key = os.path.join("", os.path.relpath(local_path, local_path))
-            s3.upload_file(local_path, bucket, s3_key)
+    upload(local_path,s3,bucket)
     response = s3.list_objects_v2(Bucket=bucket)
     if "Contents" in response:
         objects = response["Contents"]
@@ -76,3 +81,6 @@ def s3_init(s3):
             file_key = obj["Key"]
             file_size = obj["Size"]
             print(f"File: {file_key}, Size: {file_size} bytes")
+    print("--------------------------end s3 init---------------------------")
+    
+
