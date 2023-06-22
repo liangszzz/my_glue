@@ -37,7 +37,15 @@ class Etl(Base):
 if __name__ == "__main__":
     glue_context = GlueContext(SparkContext())
     s3 = s3_client("s3")
-    config = JobConfig(input_source=[InputFile(glue_context, s3, "ryozen-glue", "pysql/user.csv", "user_view"),
-                                     InputFile(glue_context, s3, "ryozen-glue", "pysql/address.csv", "address_view")],
-                       output_source=OutputFile(glue_context, s3, "ryozen-glue", "pysql/output"))
+    spark = glue_context.spark_session
+
+    config = JobConfig(
+        input_source=[
+            InputFile(glue_context, s3, "ryozen-glue", "pysql/user.csv", "user_view"),
+            InputFile(
+                glue_context, s3, "ryozen-glue", "pysql/address.csv", "address_view"
+            ),
+        ],
+        output_source=OutputFile(glue_context, s3, "ryozen-glue", "pysql/output"),
+    )
     Etl(glue_context, s3, config).run()

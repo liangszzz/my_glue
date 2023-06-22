@@ -4,7 +4,6 @@ from boto3 import client as s3_client
 import my_glue.utils.glue_utils as glue_utils
 import my_glue.utils.s3_utils as s3_utils
 import my_glue.common.exceptions as exceptions
-import logging
 
 
 class InputSource(ABC):
