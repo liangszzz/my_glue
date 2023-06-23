@@ -1,9 +1,12 @@
 from abc import ABC, abstractmethod
-from awsglue.context import GlueContext, DataFrame
+
+from awsglue.context import DataFrame, GlueContext
 from boto3 import client as s3_client
+
+import my_glue.common.exceptions as exceptions
 import my_glue.utils.glue_utils as glue_utils
 import my_glue.utils.s3_utils as s3_utils
-import my_glue.common.exceptions as exceptions
+from my_glue.utils import log_utils
 
 
 class InputSource(ABC):
@@ -53,13 +56,11 @@ class InputFile(InputSource):
         self.file_not_exist_msg = file_not_exist_msg
         self.file_count_is_0_msg = file_count_is_0_msg
         self.file_count_msg = file_count_msg
-        self.logger = logging.getLogger(type(self).__name__)
+        self.logger = log_utils.get_logger(type(self).__name__)
         self.default_schema = default_schema
 
     def load_data(self) -> DataFrame:
-        file_exists = s3_utils.check_s3_file_or_dir_exist(
-            self.s3, self.bucket, self.path
-        )
+        file_exists = s3_utils.check_s3_file_or_dir_exist(self.s3, self.bucket, self.path)
         if file_exists is False and self.required is True:
             raise exceptions.FileNotFoundException(self.file_not_exist_msg)
         elif file_exists is False and self.required is False:
@@ -68,9 +69,7 @@ class InputFile(InputSource):
             self.logger.info(self.file_not_exist_msg)
             return df
 
-        df = glue_utils.get_date_frame_from_s3_csv(
-            self.context, f"s3://{self.bucket}/{self.path}"
-        )
+        df = glue_utils.get_date_frame_from_s3_csv(self.context, f"s3://{self.bucket}/{self.path}")
         if df.count() == 0 and self.required is True:
             self.logger.info(self.file_count_is_0_msg.format(self.table_name))
             return None

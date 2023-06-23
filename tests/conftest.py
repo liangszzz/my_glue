@@ -1,10 +1,9 @@
-import os
-from typing import Any
 import pytest
 from awsglue.context import GlueContext
 from pyspark.sql import SparkSession
 import sys
 from boto3 import client as s3_client
+from my_glue.utils import s3_utils as s3_utils
 
 
 @pytest.fixture(scope="function")
@@ -43,11 +42,10 @@ def clear_sys_argv():
     sys.argv.append("--JOB_NAME=test")
 
 
-
-@pytest.fixture(scope="function",autouse=True)
-def s3_init(local_path:str= "tests/resources/input"):
+@pytest.fixture(scope="function", autouse=True)
+def s3_init(local_path: str = "tests/resources/input"):
     print("--------------------------start s3 init---------------------------")
-    s3=s3_client(
+    s3 = s3_client(
         "s3",
         endpoint_url="http://localstack:4566",
         aws_access_key_id="test",
@@ -73,7 +71,7 @@ def s3_init(local_path:str= "tests/resources/input"):
         CreateBucketConfiguration={"LocationConstraint": "ap-northeast-1"},
     )
 
-    upload(local_path,s3,bucket)
+    s3_utils.uploadDirOrFile(local_path, s3, bucket)
     response = s3.list_objects_v2(Bucket=bucket)
     if "Contents" in response:
         objects = response["Contents"]
@@ -82,5 +80,3 @@ def s3_init(local_path:str= "tests/resources/input"):
             file_size = obj["Size"]
             print(f"File: {file_key}, Size: {file_size} bytes")
     print("--------------------------end s3 init---------------------------")
-    
-

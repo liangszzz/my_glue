@@ -68,7 +68,8 @@ def rename_s3_file(s3: s3_client, bucket: str, old_path: str, new_path: str) -> 
     )
     s3.delete_object(Bucket=bucket, Key=old_path)
 
-def uploadDirOrFile(local_path:str,s3:s3_client,bucket:str):
+
+def uploadDirOrFile(local_path: str, s3: s3_client, bucket: str):
     """
     Uploads a directory or file from the local machine to an S3 bucket recursively.
 
@@ -87,4 +88,4 @@ def uploadDirOrFile(local_path:str,s3:s3_client,bucket:str):
                 s3_key = os.path.join("", os.path.relpath(file_path, local_path))
                 s3.upload_file(file_path, bucket, s3_key)
             else:
-                uploadDirOrFile(file_path,s3,bucket)
+                uploadDirOrFile(file_path, s3, bucket)

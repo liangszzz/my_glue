@@ -10,7 +10,7 @@ packages = [{include = "my_glue", from = "src"}]
 python = "^3.7"
 pytz = "^2023.3"
 awsglue3-local = "^1.0.0"
-pyspark = "^3.4.0"
+pyspark = "^3.4.1"
 awscli = "^1.27.151"
 boto3 = "^1.26.151"
 
@@ -18,8 +18,11 @@ boto3 = "^1.26.151"
 pytest = "^7.3.1"
 pytest-mock = "^3.10.0"
 pytest-cov = "^4.1.0"
+black = "^23.3.0"
 
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
 
+[tool.black]
+line-length = 119

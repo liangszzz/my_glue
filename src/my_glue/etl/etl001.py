@@ -2,10 +2,8 @@ from awsglue.context import DataFrame, GlueContext
 from boto3 import client as s3_client
 from pyspark.context import SparkContext
 
-from my_glue.common.base import Base
-from my_glue.common.base import JobConfig
-from my_glue.common.input_source import InputFile
-from my_glue.common.output_source import OutputFile
+from my_glue.common.base import Base, JobConfig
+from my_glue.common.input_output import InputOutputWithConfig
 
 
 class Etl(Base):
@@ -37,15 +35,5 @@ class Etl(Base):
 if __name__ == "__main__":
     glue_context = GlueContext(SparkContext())
     s3 = s3_client("s3")
-    spark = glue_context.spark_session
-
-    config = JobConfig(
-        input_source=[
-            InputFile(glue_context, s3, "ryozen-glue", "pysql/user.csv", "user_view"),
-            InputFile(
-                glue_context, s3, "ryozen-glue", "pysql/address.csv", "address_view"
-            ),
-        ],
-        output_source=OutputFile(glue_context, s3, "ryozen-glue", "pysql/output"),
-    )
-    Etl(glue_context, s3, config).run()
+    config = InputOutputWithConfig(glue_context, s3, "src/my_glue/config/etl/etl001.ini")
+    Etl(glue_context, s3, config.get_job_config()).run()
