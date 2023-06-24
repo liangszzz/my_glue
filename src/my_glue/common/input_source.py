@@ -18,7 +18,7 @@ class InputSource(ABC):
         pass
 
 
-class InputFile(InputSource):
+class InputS3FileSource(InputSource):
     def __init__(
         self,
         context: GlueContext,
@@ -62,7 +62,7 @@ class InputFile(InputSource):
     def load_data(self) -> DataFrame:
         file_exists = s3_utils.check_s3_file_or_dir_exist(self.s3, self.bucket, self.path)
         if file_exists is False and self.required is True:
-            raise exceptions.FileNotFoundException(self.file_not_exist_msg)
+            raise exceptions.FileNotFoundException(self.file_not_exist_msg.format(f"s3://{self.bucket}/{self.path}"))
         elif file_exists is False and self.required is False:
             df = self.context.createDataFrame([], self.default_schema)
             df.createOrReplaceTempView(self.table_name)
@@ -76,4 +76,33 @@ class InputFile(InputSource):
         self.logger.info(self.file_count_msg.format(df.count()))
         df.createOrReplaceTempView(self.table_name)
         df.show()
+        return df
+
+
+class InputCatlogSource(InputSource):
+    def __init__(
+        self,
+        context: GlueContext,
+        database: str,
+        table_name: str,
+        required: bool = True,
+        table_not_exist_msg: str = "Table does not exist {0}",
+        table_count_is_0_msg: str = "Table {0} count is 0",
+        table_count_msg: str = "Table count is {0}",
+        default_schema: str = None,
+    ) -> None:
+        self.context = context
+        self.database = database
+        self.table_name = table_name
+        self.required = required
+        self.table_not_exist_msg = table_not_exist_msg
+        self.table_count_is_0_msg = table_count_is_0_msg
+        self.table_count_msg = table_count_msg
+
+    def load_data(self) -> DataFrame:
+        df = self.context.create_data_frame_from_catalog(database=self.database, table_name=self.table_name)
+        if df.count() == 0 and self.required is True:
+            self.logger.info(self.table_count_is_0_msg.format(self.table_name))
+            return None
+        self.logger.info(self.table_count_msg.format(df.count()))
         return df

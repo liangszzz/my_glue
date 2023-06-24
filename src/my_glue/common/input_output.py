@@ -3,7 +3,7 @@ import configparser
 from awsglue.context import GlueContext
 from boto3 import client as s3_client
 
-from my_glue.common.input_source import InputFile
+from my_glue.common.input_source import InputS3FileSource
 from my_glue.common.job_config import JobConfig
 from my_glue.common.output_source import OutputFile
 from my_glue.utils import log_utils
@@ -35,7 +35,7 @@ class InputOutputWithConfig:
             input_type = self.config.get(item, "type")
             if input_type == "s3-file":
                 self.job_config.input_source.append(
-                    InputFile(
+                    InputS3FileSource(
                         context=self.context,
                         s3=self.s3,
                         bucket=self.config.get(item, "bucket"),

@@ -1,9 +1,9 @@
-from my_glue.common.base import Base
 from awsglue.context import DataFrame, GlueContext
-from pyspark.context import SparkContext
 from boto3 import client as s3_client
-from my_glue.common.base import JobConfig
-from my_glue.common.input_source import InputFile
+from pyspark.context import SparkContext
+
+from my_glue.common.base import Base, JobConfig
+from my_glue.common.input_source import InputS3FileSource
 from my_glue.common.output_source import OutputFile
 
 
@@ -38,7 +38,7 @@ if __name__ == "__main__":
     s3 = s3_client("s3")
     config = JobConfig(
         input_source=[
-            InputFile(
+            InputS3FileSource(
                 glue_context,
                 s3,
                 "ryozen-glue",
@@ -46,9 +46,7 @@ if __name__ == "__main__":
                 "user_view",
                 required=False,
             ),
-            InputFile(
-                glue_context, s3, "ryozen-glue", "pysql/address.csv", "address_view"
-            ),
+            InputS3FileSource(glue_context, s3, "ryozen-glue", "pysql/address.csv", "address_view"),
         ],
         output_source=OutputFile(glue_context, s3, "ryozen-glue", "pysql/output"),
     )
