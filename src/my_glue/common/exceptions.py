@@ -1,6 +1,5 @@
 from my_glue.utils.log_utils import get_logger
 
-
 logger = get_logger(__name__)
 
 
@@ -27,11 +26,11 @@ class BizException(Exception):
 
 class ParamNotFoundException(Exception):
     """
-    param not found exception
+    parameter not found exception
     """
 
     def __init__(self, message):
-        super().__init__(message)
+        super().__init__("parameter [{0}] is not found".format(message))
 
 
 class FileNotFoundException(Exception):

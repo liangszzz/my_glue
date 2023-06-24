@@ -1,9 +1,10 @@
 from abc import ABC, abstractmethod
 
-from my_glue.utils.log_utils import get_logger
-from awsglue.context import GlueContext, DataFrame
-from boto3 import client as s3_client
+from awsglue.context import DataFrame, GlueContext
+from boto3 import client
+
 import my_glue.utils.glue_utils as glue_utils
+from my_glue.utils.log_utils import get_logger
 
 
 class OutputSource(ABC):
@@ -16,7 +17,7 @@ class OutputFile(OutputSource):
     def __init__(
         self,
         context: GlueContext,
-        s3: s3_client,
+        s3: client,
         bucket: str,
         path: str,
         file_count_msg: str = "File count is {0}",

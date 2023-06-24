@@ -1,7 +1,7 @@
 import configparser
 
 from awsglue.context import GlueContext
-from boto3 import client as s3_client
+from boto3 import client
 
 from my_glue.common.input_source import InputS3FileSource
 from my_glue.common.job_config import JobConfig
@@ -10,7 +10,7 @@ from my_glue.utils import log_utils
 
 
 class InputOutputWithConfig:
-    def __init__(self, context: GlueContext, s3: s3_client, config_path: str) -> None:
+    def __init__(self, context: GlueContext, s3: client, config_path: str) -> None:
         super().__init__()
         self.context = context
         self.spark = context.spark_session

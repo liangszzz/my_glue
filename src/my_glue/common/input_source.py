@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 
 from awsglue.context import DataFrame, GlueContext
-from boto3 import client as s3_client
+from boto3 import client
 
 import my_glue.common.exceptions as exceptions
 import my_glue.utils.glue_utils as glue_utils
@@ -22,7 +22,7 @@ class InputS3FileSource(InputSource):
     def __init__(
         self,
         context: GlueContext,
-        s3: s3_client,
+        s3: client,
         bucket: str,
         path: str,
         table_name: str,
@@ -37,7 +37,7 @@ class InputS3FileSource(InputSource):
 
         Args:
             context (GlueContext): glue context
-            s3 (s3_client): s3 client
+            s3 (client): s3 client
             bucket (str): s3 bucket
             path (str): s3 path
             table_name (str): table name in spark sql

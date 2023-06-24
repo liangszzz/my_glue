@@ -1,11 +1,10 @@
 from typing import Any, Dict
+
 from awsglue import DynamicFrame
-from awsglue.context import GlueContext, DataFrame
+from awsglue.context import DataFrame, GlueContext
 
 
-def get_data_frame_from_catalog(
-    context: GlueContext, database: str, table: str
-) -> DataFrame:
+def get_data_frame_from_catalog(context: GlueContext, database: str, table: str) -> DataFrame:
     """
     Creates a `DataFrame` from a Glue catalog database and table.
 
@@ -23,7 +22,7 @@ def get_data_frame_from_catalog(
 def get_date_frame_from_s3_csv(
     context: GlueContext,
     s3_path: str,
-    format_options: Dict[str, Any] = {"withHeader": True, "encoding": "utf-8"},
+    options: Dict[str, Any] = {"header": "true", "encoding": "utf-8"},
 ) -> DataFrame:
     """
     Creates a DataFrame from a CSV file stored on S3 using GlueContext. Takes in three parameters:
@@ -35,17 +34,10 @@ def get_date_frame_from_s3_csv(
     Returns:
         DataFrame: The resulting `DataFrame`.
     """
-    return context.create_data_frame.from_options(
-        connection_type="s3",
-        connection_options={"paths": [s3_path]},
-        format="csv",
-        format_options=format_options,
-    )
+    return context.spark_session.read.format("csv").options(**options).load(s3_path)
 
 
-def convert_data_frame_to_dynamic_frame(
-    context: GlueContext, df: DataFrame, name: str
-) -> DynamicFrame:
+def convert_data_frame_to_dynamic_frame(context: GlueContext, df: DataFrame, name: str) -> DynamicFrame:
     """
     Converts a specified pandas DataFrame, `df`, to a Glue DynamicFrame
 
@@ -60,9 +52,7 @@ def convert_data_frame_to_dynamic_frame(
     return DynamicFrame.fromDF(df, context, name)
 
 
-def convert_dynamic_frame_to_data_frame(
-    context: GlueContext, df: DynamicFrame, name: str
-) -> DataFrame:
+def convert_dynamic_frame_to_data_frame(context: GlueContext, df: DynamicFrame, name: str) -> DataFrame:
     """
     Converts a specified Glue DynamicFrame, `df`, to a pandas DataFrame
 
@@ -83,8 +73,8 @@ def export_data_frame_to_csv(
     repartition: int = 2,
     options: Dict[str, Any] = {
         "encoding": "utf-8",
-        # "quote": '"',
-        # "quoteAll": True,
+        "quote": '"',
+        "quoteAll": True,
     },
 ) -> None:
     """
@@ -101,3 +91,15 @@ def export_data_frame_to_csv(
     """
     df = df.repartition(repartition)
     df.write.mode("overwrite").csv(s3_path, **options)
+
+
+def export_data_frame_to_catalog(
+    df: DataFrame,
+    database: str,
+    table: str,
+    options: Dict[str, Any] = {"encoding": "utf-8"},
+) -> None:
+    """
+    Exports a specified pandas DataFrame, `df`, to a Glue catalog database and table
+    """
+    df.write.format("glueparquet").mode("overwrite").options(**options).saveAsTable(database, table)

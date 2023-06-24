@@ -5,12 +5,19 @@ from my_glue.common.output_source import OutputSource
 
 
 class JobConfig:
-    def __init__(self) -> None:
-        self._required_params: List[str] = []
-        self._input_source: List[InputSource] = []
-        self._output_source: OutputSource = []
-        self._job_start_msg: str = ""
-        self._job_commit_msg: str = ""
+    def __init__(
+        self,
+        required_params: List[str] = [],
+        input_source: List[InputSource] = [],
+        output_source: List[OutputSource] = [],
+        job_start_msg: str = "",
+        job_commit_msg: str = "",
+    ) -> None:
+        self._required_params: List[str] = required_params
+        self._input_source: List[InputSource] = input_source
+        self._output_source: List[OutputSource] = output_source
+        self._job_start_msg: str = job_start_msg
+        self._job_commit_msg: str = job_commit_msg
 
     @property
     def required_params(self) -> List[str]:
@@ -45,9 +52,9 @@ class JobConfig:
         self._input_source.append(input_source)
 
     @property
-    def output_source(self) -> OutputSource:
+    def output_source(self) -> List[OutputSource]:
         return self._output_source
 
     @output_source.setter
-    def output_source(self, output_source: OutputSource) -> None:
+    def output_source(self, output_source: List[OutputSource]) -> None:
         self._output_source = output_source

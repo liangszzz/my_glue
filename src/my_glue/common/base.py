@@ -5,7 +5,7 @@ from typing import List
 from awsglue.context import DataFrame, GlueContext
 from awsglue.job import Job
 from awsglue.utils import getResolvedOptions
-from boto3 import client as s3_client
+from boto3 import client
 
 from my_glue.common import exceptions
 from my_glue.common.job_config import JobConfig
@@ -14,7 +14,7 @@ from my_glue.utils.log_utils import get_logger
 
 
 class Base(ABC):
-    def __init__(self, context: GlueContext, s3: s3_client, config: JobConfig) -> None:
+    def __init__(self, context: GlueContext, s3: client, config: JobConfig) -> None:
         self.context = context
         self.spark = context.spark_session
         self.s3 = s3

@@ -1,5 +1,5 @@
 from awsglue.context import DataFrame, GlueContext
-from boto3 import client as s3_client
+from boto3 import client
 from pyspark.context import SparkContext
 
 from my_glue.common.base import Base, JobConfig
@@ -8,7 +8,7 @@ from my_glue.common.output_source import OutputFile
 
 
 class Etl(Base):
-    def __init__(self, context: GlueContext, s3: s3_client, config: JobConfig) -> None:
+    def __init__(self, context: GlueContext, s3: client, config: JobConfig) -> None:
         super().__init__(context, s3, config)
 
     def handle_data(self) -> DataFrame:
@@ -35,7 +35,7 @@ class Etl(Base):
 
 if __name__ == "__main__":
     glue_context = GlueContext(SparkContext())
-    s3 = s3_client("s3")
+    s3 = client("s3")
     config = JobConfig(
         input_source=[
             InputS3FileSource(
