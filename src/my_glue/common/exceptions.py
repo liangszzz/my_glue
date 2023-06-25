@@ -4,15 +4,17 @@ logger = get_logger(__name__)
 
 
 def exception_decorator(func):
-    def wrapper(*args, **kwargs):
+    def wrapper(*args, **kwargs) -> func:
         try:
             logger.info(f"Start {func.__name__}")
             res = func(*args, **kwargs)
             logger.info(f"End {func.__name__}")
             return res
         except Exception as e:
-            logger.error(e)
+            logger.error(e, exc_info=True)
             raise e
+
+    return wrapper
 
 
 class BizException(Exception):
@@ -21,7 +23,7 @@ class BizException(Exception):
     """
 
     def __init__(self, message):
-        super().__init__(message)
+        super().__init__("Biz exception: {0}".format(message))
 
 
 class ParamNotFoundException(Exception):
@@ -39,4 +41,4 @@ class FileNotFoundException(Exception):
     """
 
     def __init__(self, message):
-        super().__init__(message)
+        super().__init__("file [{0}] is not found".format(message))
