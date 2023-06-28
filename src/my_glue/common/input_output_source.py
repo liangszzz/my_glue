@@ -52,7 +52,8 @@ class InputOutputWithConfig:
     def load_output_config(self, output: str) -> None:
         output_arr = output.split(",")
         for item in output_arr:
-            if item == "s3-file":
+            input_type = self.config.get(item, "type")
+            if input_type == "s3-file":
                 self.job_config.output_source.append(
                     OutputFile(
                         context=self.context,

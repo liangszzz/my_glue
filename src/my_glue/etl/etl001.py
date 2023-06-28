@@ -3,7 +3,7 @@ from boto3 import client
 from pyspark.context import SparkContext
 
 from my_glue.common.base import Base, JobConfig
-from my_glue.common.input_output import InputOutputWithConfig
+from my_glue.common.input_output_source import InputOutputWithConfig
 
 
 class Etl(Base):
