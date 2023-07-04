@@ -53,7 +53,7 @@ class InputOutputWithConfig:
         output_arr = output.split(",")
         for item in output_arr:
             input_type = self.config.get(item, "type")
-            if input_type == "s3-file":
+            if input_type == "s3-dir":
                 self.job_config.output_source.append(
                     OutputFile(
                         context=self.context,

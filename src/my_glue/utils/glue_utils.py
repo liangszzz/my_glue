@@ -75,6 +75,7 @@ def export_data_frame_to_csv(
         "encoding": "utf-8",
         "quote": '"',
         "quoteAll": True,
+        "header": "true",
     },
 ) -> None:
     """
