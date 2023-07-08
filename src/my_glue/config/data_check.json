@@ -1,0 +1,13 @@
+{
+  "table": {
+    "name": "my_glue",
+    "fields": [
+      {
+        "name": "id",
+        "type": "string",
+        "length": 2,
+        "required": false
+      }
+    ]
+  }
+}

@@ -22,7 +22,7 @@ def get_data_frame_from_catalog(context: GlueContext, database: str, table: str)
 def get_date_frame_from_s3_csv(
     context: GlueContext,
     s3_path: str,
-    options: Dict[str, Any] = {"header": "true", "encoding": "utf-8"},
+    options: Dict[str, Any] = {"header": "true", "encoding": "utf-8", "quote": '"', "escape": '"'},
 ) -> DataFrame:
     """
     Creates a DataFrame from a CSV file stored on S3 using GlueContext. Takes in three parameters:
@@ -35,6 +35,18 @@ def get_date_frame_from_s3_csv(
         DataFrame: The resulting `DataFrame`.
     """
     return context.spark_session.read.format("csv").options(**options).load(s3_path)
+
+
+def get_data_from_s3_text(context: GlueContext, s3_path: str) -> DataFrame:
+    """
+    Creates a `DataFrame` from a text file stored on S3.
+    Args:
+        context (GlueContext): The Glue context object.
+        s3_path (str): The S3 path.
+    Returns:
+        DataFrame: The resulting `DataFrame`.
+    """
+    return context.spark_session.read.text(s3_path)
 
 
 def convert_data_frame_to_dynamic_frame(context: GlueContext, df: DataFrame, name: str) -> DynamicFrame:
@@ -76,6 +88,7 @@ def export_data_frame_to_csv(
         "quote": '"',
         "quoteAll": True,
         "header": "true",
+        "escape": '"',
     },
 ) -> None:
     """

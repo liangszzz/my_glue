@@ -75,7 +75,6 @@ class InputS3FileSource(InputSource):
             return None
         self.logger.info(self.file_count_msg.format(df.count()))
         df.createOrReplaceTempView(self.table_name)
-        df.show()
         return df
 
 

@@ -2,6 +2,16 @@ import os
 
 from boto3 import client
 
+from my_glue.utils import sys_utils
+
+
+def get_client() -> client:
+    json = sys_utils.read_config_to_json("src/my_glue/config/env.ini")
+    env = json["common"]["active"]
+    if hasattr(json, env, "endpoint_url"):
+        return client("s3", endpoint_url=json[env]["endpoint_url"])
+    return client("s3")
+
 
 def check_s3_file_exist(s3: client, bucket: str, path: str) -> bool:
     """

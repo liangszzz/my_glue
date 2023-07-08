@@ -1,12 +1,10 @@
-import configparser
-
 from awsglue.context import GlueContext
 from boto3 import client
 
 from my_glue.common.input_source import InputS3FileSource
 from my_glue.common.job_config import JobConfig
 from my_glue.common.output_source import OutputFile
-from my_glue.utils import log_utils
+from my_glue.utils import log_utils, sys_utils
 
 
 class InputOutputWithConfig:
@@ -16,16 +14,14 @@ class InputOutputWithConfig:
         self.spark = context.spark_session
         self.s3 = s3
         self.logger = log_utils.get_logger(type(self).__name__)
-        _config = configparser.ConfigParser()
-        _config.read(config_path)
-        self.config = _config
         self.job_config = JobConfig()
-        self.init_config()
+        self.init_config(sys_utils.read_config_to_json(config_path))
 
-    def init_config(self):
+    def init_config(self, config: dict) -> None:
+        config.get("common")
         self.job_config.required_params = self.config.get("common", "required_params").split(",")
-        self.job_config.job_start_msg = self.config.get("common", "job_start_msg")
-        self.job_config.job_commit_msg = self.config.get("common", "job_commit_msg")
+        self.job_config.job_start_msg = self.config.get("common", "job_start_msg", raw=True)
+        self.job_config.job_end_msg = self.config.get("common", "job_commit_msg")
         self.load_input_config(self.config.get("common", "input"))
         self.load_output_config(self.config.get("common", "output"))
 
