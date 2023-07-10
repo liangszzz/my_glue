@@ -1,14 +1,14 @@
-from awsglue.context import DataFrame, GlueContext
-from pyspark.context import SparkContext
+from awsglue.context import DataFrame
 
 from my_glue.common.base import Base
 from my_glue.common.input_output_source import InputOutputWithConfig
-from my_glue.utils import s3_utils
+from my_glue.utils import glue_utils, s3_utils
 
 
 class Etl001(Base):
-    def __init__(self, context: GlueContext) -> None:
+    def __init__(self) -> None:
         s3 = s3_utils.get_client()
+        context = glue_utils.get_glue_context()
         config = InputOutputWithConfig(context, s3, "src/my_glue/config/etl/etl001.ini")
         super().__init__(context, s3, config.get_job_config())
 
@@ -35,4 +35,4 @@ class Etl001(Base):
 
 
 if __name__ == "__main__":
-    Etl001(GlueContext(SparkContext())).run()
+    Etl001().run()

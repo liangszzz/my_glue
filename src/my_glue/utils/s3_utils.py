@@ -8,7 +8,7 @@ from my_glue.utils import sys_utils
 def get_client() -> client:
     json = sys_utils.read_config_to_json("src/my_glue/config/env.ini")
     env = json["common"]["active"]
-    if hasattr(json, env, "endpoint_url"):
+    if "endpoint_url" in json[env]:
         return client("s3", endpoint_url=json[env]["endpoint_url"])
     return client("s3")
 
