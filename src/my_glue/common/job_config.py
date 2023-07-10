@@ -10,14 +10,14 @@ class JobConfig:
         required_params: List[str] = [],
         input_source: List[InputSource] = [],
         output_source: List[OutputSource] = [],
-        job_start_msg: str = "",
-        job_commit_msg: str = "",
+        job_start_msg: str = "job started",
+        job_end_msg: str = "job finished",
     ) -> None:
         self._required_params: List[str] = required_params
         self._input_source: List[InputSource] = input_source
         self._output_source: List[OutputSource] = output_source
         self._job_start_msg: str = job_start_msg
-        self._job_commit_msg: str = job_commit_msg
+        self._job_end_msg: str = job_end_msg
 
     @property
     def required_params(self) -> List[str]:
@@ -36,12 +36,12 @@ class JobConfig:
         self._job_start_msg = job_start_msg
 
     @property
-    def job_commit_msg(self) -> str:
-        return self._job_commit_msg
+    def job_end_msg(self) -> str:
+        return self._job_end_msg
 
-    @job_commit_msg.setter
-    def job_commit_msg(self, job_commit_msg: str):
-        self._job_commit_msg = job_commit_msg
+    @job_end_msg.setter
+    def job_end_msg(self, job_end_msg: str):
+        self._job_end_msg = job_end_msg
 
     @property
     def input_source(self) -> List[InputSource]:

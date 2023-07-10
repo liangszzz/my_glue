@@ -1,0 +1,13 @@
+{
+    "address_view": {
+        "fields": [
+            {
+                "name": "id",
+                "type": "string",
+                "startIndex": 0,
+                "length": 2,
+                "required": false
+            }
+        ]
+    }
+}

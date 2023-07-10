@@ -22,8 +22,8 @@ class Base(ABC):
         self.logger = get_logger(type(self).__name__)
         self.params: List[str] = []
 
-    def init_optional_params(self, params: List[str] = []) -> None:
-        self.params = params
+    def init_optional_params(self) -> None:
+        return None
 
     def check_required_params(self) -> None:
         for param in self.job_config.required_params:
@@ -31,7 +31,6 @@ class Base(ABC):
                 raise exceptions.ParamNotFoundException(param)
 
     def init_job(self) -> None:
-        self.logger.info(self.job_config.job_start_msg)
         self.job = Job(self.context)
         self.params.extend(self.job_config.required_params)
         self.args = getResolvedOptions(sys.argv, self.params)
@@ -39,7 +38,6 @@ class Base(ABC):
 
     def commit_job(self) -> None:
         self.job.commit()
-        self.logger.info(self.job_config.job_commit_msg)
 
     def load_data(self) -> None:
         for input in self.job_config.input_source:
@@ -54,10 +52,11 @@ class Base(ABC):
             output.output_data(df)
 
     def run(self) -> None:
+        self.logger.info(self.job_config.job_start_msg)
         self.init_optional_params()
         self.check_required_params()
         self.init_job()
         self.load_data()
-        self.handle_data()
         self.export_source(self.handle_data())
         self.commit_job()
+        self.logger.info(self.job_config.job_end_msg)
