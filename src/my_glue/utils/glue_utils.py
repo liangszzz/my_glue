@@ -3,22 +3,10 @@ from typing import Any, Dict
 from awsglue import DynamicFrame
 from awsglue.context import DataFrame, GlueContext
 from pyspark.context import SparkContext
-from pyspark.sql import SparkSession
-
-from my_glue.utils import sys_utils
 
 
 def get_glue_context() -> GlueContext:
-    json = sys_utils.read_config_to_json("src/my_glue/config/env.ini")
-    env = json["common"]["active"]
-    if "endpoint_url" in json[env]:
-        spark_context = (
-            SparkSession.builder.config("spark.hadoop.fs.s3a.endpoint", json[env]["endpoint_url"])
-            .getOrCreate()
-        )
-        return GlueContext(spark_context)
-    else:
-        return GlueContext(SparkContext())
+    return GlueContext(SparkContext())
 
 
 def get_data_frame_from_catalog(context: GlueContext, database: str, table: str) -> DataFrame:
