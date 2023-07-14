@@ -1,4 +1,5 @@
-from awsglue.context import DataFrame
+from awsglue.context import DataFrame, GlueContext
+from boto3 import client
 
 from my_glue.common.base import Base
 from my_glue.common.input_output_source import InputOutputWithConfig
@@ -6,9 +7,7 @@ from my_glue.utils import glue_utils, s3_utils
 
 
 class Etl001(Base):
-    def __init__(self) -> None:
-        s3 = s3_utils.get_client()
-        context = glue_utils.get_glue_context()
+    def __init__(self, context: GlueContext, s3: client) -> None:
         config = InputOutputWithConfig(context, s3, "src/my_glue/config/etl/etl001.ini")
         super().__init__(context, s3, config.get_job_config())
 
@@ -35,4 +34,4 @@ class Etl001(Base):
 
 
 if __name__ == "__main__":
-    Etl001().run()
+    Etl001(glue_utils.get_glue_context(), s3_utils.get_client()).run()
