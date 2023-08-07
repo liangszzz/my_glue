@@ -82,7 +82,7 @@ services:
 
 
   glue:
-    container_name: glue3
+    container_name: glue4
     image: amazon/aws-glue-libs:glue_libs_4.0.0_image_01
     ports:
       - 8080:8080

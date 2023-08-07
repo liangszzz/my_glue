@@ -9,6 +9,7 @@ My glue Project!
 ### 2.1 init project
 
 ```bash
+python3 -m pip install --upgrade pip
 pip install -U poetry
 
 poetry install -v
