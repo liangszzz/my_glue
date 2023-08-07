@@ -7,7 +7,7 @@ readme = "README.md"
 packages = [{include = "my_glue", from = "src"}]
 
 [tool.poetry.dependencies]
-python = "^3.7"
+python = "^3.10.2"
 pytz = "^2023.3"
 awsglue3-local = "^1.0.0"
 pyspark = "^3.4.1"
