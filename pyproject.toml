@@ -9,10 +9,9 @@ packages = [{include = "my_glue", from = "src"}]
 [tool.poetry.dependencies]
 python = "^3.10.2"
 pytz = "^2023.3"
-awsglue3-local = "^1.0.0"
 pyspark = "^3.4.1"
-awscli = "^1.27.151"
-boto3 = "^1.26.151"
+awscli = "^1.29.25"
+boto3 = "^1.28.25"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^7.3.1"
