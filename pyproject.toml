@@ -17,8 +17,7 @@ pytz = "^2023.3"
 pyyaml = "^6.0.1"
 regex = "^2023.8.8"
 requests = "^2.31.0"
-spark = "^0.2.1"
-pyspark = "^3.4.1"
+
 
 
 [tool.poetry.group.dev.dependencies]
