@@ -8,10 +8,18 @@ packages = [{include = "my_glue", from = "src"}]
 
 [tool.poetry.dependencies]
 python = "^3.10.2"
+awscli = "^1.29.26"
+boto3 = "^1.28.26"
+cython = "^3.0.0"
+numpy = "^1.25.2"
+pandas = "^2.0.3"
 pytz = "^2023.3"
+pyyaml = "^6.0.1"
+regex = "^2023.8.8"
+requests = "^2.31.0"
+spark = "^0.2.1"
 pyspark = "^3.4.1"
-awscli = "^1.29.25"
-boto3 = "^1.28.25"
+
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^7.3.1"
