@@ -1,4 +1,5 @@
 import sys
+import time
 from abc import ABC, abstractmethod
 from typing import List
 
@@ -21,6 +22,7 @@ class Base(ABC):
         self.job_config = config
         self.logger = get_logger(type(self).__name__)
         self.params: List[str] = []
+        self.now = time.time()
 
     def init_optional_params(self) -> None:
         return None
@@ -60,3 +62,4 @@ class Base(ABC):
         self.export_source(self.handle_data())
         self.commit_job()
         self.logger.info(self.job_config.job_end_msg)
+        self.logger.info("execute time: {}".format(time.time() - self.now))

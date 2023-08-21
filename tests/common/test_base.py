@@ -21,7 +21,7 @@ def test_new(glue_context):
 
 
 def test_boto(s3):
-    s3_utils.uploadDirOrFile("tests/resources/input/common/", s3, "test-resource")
+    s3_utils.upload_dir_or_file("tests/resources/input/common/", s3, "test-resource")
     assert s3_utils.check_s3_file_or_dir_exist(s3, "test-resource", "common"), "common dir exists"
     assert s3_utils.check_s3_file_or_dir_exist(s3, "test-resource", "etl001") is False, "etl001 dir exists"
 

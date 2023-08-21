@@ -74,7 +74,7 @@ def rename_s3_file(s3: client, bucket: str, old_path: str, new_path: str) -> Non
     s3.delete_object(Bucket=bucket, Key=old_path)
 
 
-def uploadDirOrFile(local_path: str, s3: client, bucket: str):
+def upload_dir_or_file(local_path: str, s3: client, bucket: str):
     """
     Uploads a directory or file from the local machine to an S3 bucket recursively.
 
@@ -93,4 +93,20 @@ def uploadDirOrFile(local_path: str, s3: client, bucket: str):
                 s3_key = os.path.join("", os.path.relpath(file_path, local_path))
                 s3.upload_file(file_path, bucket, s3_key)
             else:
-                uploadDirOrFile(file_path, s3, bucket)
+                upload_dir_or_file(file_path, s3, bucket)
+
+
+def download_s3_bucket(s3: client, bucket: str, local_path: str) -> None:
+    """
+    Downloads an S3 bucket recursively.
+    Args:
+        s3 (boto3.client): the S3 client.
+        bucket (str): the S3 bucket.
+    Returns:
+        None
+    """
+    for obj in s3.list_objects_v2(Bucket=bucket)["Contents"]:
+        obj_key = obj["Key"]
+        destination_path = os.path.join(local_path, obj_key)
+        os.makedirs(os.path.dirname(destination_path), exist_ok=True)
+        s3.download_file(bucket, obj_key, destination_path)

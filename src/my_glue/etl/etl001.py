@@ -6,9 +6,9 @@ from my_glue.common.input_output_source import InputOutputWithConfig
 from my_glue.utils import glue_utils, s3_utils
 
 
-class Etl001(Base):
-    def __init__(self, context: GlueContext, s3: client) -> None:
-        config = InputOutputWithConfig(context, s3, "src/my_glue/config/etl/etl001.ini")
+class Etl(Base):
+    def __init__(self, context: GlueContext, s3: client, config: str = "src/my_glue/config/etl/etl001.ini") -> None:
+        config = InputOutputWithConfig(context, s3, config)
         super().__init__(context, s3, config.get_job_config())
 
     def handle_data(self) -> DataFrame:
@@ -34,4 +34,4 @@ class Etl001(Base):
 
 
 if __name__ == "__main__":
-    Etl001(glue_utils.get_glue_context(), s3_utils.get_client()).run()
+    Etl(glue_utils.get_glue_context(), s3_utils.get_client()).run()
