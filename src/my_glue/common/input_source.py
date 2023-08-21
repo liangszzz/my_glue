@@ -69,7 +69,7 @@ class InputS3FileSource(InputSource):
             self.logger.info(self.file_not_exist_msg)
             return df
 
-        df = glue_utils.get_date_frame_from_s3_csv(self.context, f"s3://{self.bucket}/{self.path}")
+        df = glue_utils.load_df_from_s3_csv(self.context, f"s3://{self.bucket}/{self.path}")
         if df.count() == 0 and self.required is True:
             self.logger.info(self.file_count_is_0_msg.format(self.table_name))
             return None

@@ -24,7 +24,7 @@ def get_data_frame_from_catalog(context: GlueContext, database: str, table: str)
     return context.create_data_frame.from_catalog(database, table)
 
 
-def get_date_frame_from_s3_csv(
+def load_df_from_s3_csv(
     context: GlueContext,
     s3_path: str,
     options: Dict[str, Any] = {"header": "true", "encoding": "utf-8", "quote": '"', "escape": '"'},
@@ -42,7 +42,7 @@ def get_date_frame_from_s3_csv(
     return context.spark_session.read.format("csv").options(**options).load(s3_path)
 
 
-def get_data_from_s3_text(context: GlueContext, s3_path: str) -> DataFrame:
+def load_df_from_s3_text(context: GlueContext, s3_path: str) -> DataFrame:
     """
     Creates a `DataFrame` from a text file stored on S3.
     Args:

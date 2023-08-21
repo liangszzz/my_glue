@@ -22,10 +22,15 @@ logger = log_utils.get_logger(__name__)
 def glue_context():
     spark_context = (
         SparkSession.builder.config("spark.hadoop.fs.s3a.endpoint", endpoint_url)
-        .config("spark.hadoop.fs.s3a.access.key", aws_access_key_id)
-        .config("spark.hadoop.fs.s3a.secret.key", aws_secret_access_key)
+        .config("fs.s3a.access.key", aws_access_key_id)
+        .config("fs.s3a.secret.key", aws_secret_access_key)
         .config("spark.hadoop.fs.s3a.region", region_name)
         .config("spark.hadoop.fs.s3a.format", "json")
+        .config("fs.s3a.impl", "org.apache.hadoop.fs.s3a.S3AFileSystem")
+        .config("fs.s3a.path.style.access", "true")
+        .config("fs.s3a.connection.ssl.enabled", "false")
+        .config("com.amazonaws.services.s3a.enableV4", "true")
+        .config("fs.s3a.aws.credentials.provider", "org.apache.hadoop.fs.s3a.TemporaryAWSCredentialsProvider")
         .getOrCreate()
     )
 
@@ -74,7 +79,7 @@ def s3_create_bucket(s3):
             )
     for i in range(1, 10):
         try:
-            s3.head_bucket(Bucket=input_bucket + str(i))
+            s3.head_bucket(Bucket=output_bucket + str(i))
         except Exception:
             s3.create_bucket(
                 Bucket=output_bucket + str(i),

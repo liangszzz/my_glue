@@ -18,7 +18,9 @@ class InputOutputWithConfig:
         self.config = sys_utils.read_config_to_json(config_path)
         self.init_config()
 
-    def init_config(self, ) -> None:
+    def init_config(
+        self,
+    ) -> None:
         common = self.config.get("common")
         self.job_config.required_params = common["required_params"].split(",")
         self.job_config.job_start_msg = common["job_start_msg"]
@@ -38,7 +40,7 @@ class InputOutputWithConfig:
                         bucket=self.config[item]["bucket"],
                         path=self.config[item]["path"],
                         table_name=self.config[item]["table_name"],
-                        required=self.config[item]["required"],
+                        required=bool(self.config[item]["required"]),
                         file_not_exist_msg=self.config[item]["file_not_exist_msg"],
                         file_count_is_0_msg=self.config[item]["file_count_is_0_msg"],
                         file_count_msg=self.config[item]["file_count_msg"],

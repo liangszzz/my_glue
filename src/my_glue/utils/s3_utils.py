@@ -105,8 +105,10 @@ def download_s3_bucket(s3: client, bucket: str, local_path: str) -> None:
     Returns:
         None
     """
-    for obj in s3.list_objects_v2(Bucket=bucket)["Contents"]:
-        obj_key = obj["Key"]
-        destination_path = os.path.join(local_path, obj_key)
-        os.makedirs(os.path.dirname(destination_path), exist_ok=True)
-        s3.download_file(bucket, obj_key, destination_path)
+    response = s3.list_objects_v2(Bucket=bucket)
+    if "Contents" in response:
+        for obj in response["Contents"]:
+            obj_key = obj["Key"]
+            destination_path = os.path.join(local_path, obj_key)
+            os.makedirs(os.path.dirname(destination_path), exist_ok=True)
+            s3.download_file(bucket, obj_key, destination_path)
