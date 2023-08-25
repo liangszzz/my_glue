@@ -36,7 +36,7 @@ class OutputFile(OutputSource):
     def output_data(self, df: DataFrame) -> None:
         self.logger.info(self.file_count_msg.format(df.count()))
         try:
-            glue_utils.export_data_frame_to_csv(df, f"s3://{self.bucket}/{self.path}")
+            glue_utils.export_data_frame_to_csv_dir(df, f"s3://{self.bucket}/{self.path}")
         except Exception as e:
             self.logger.error(self.file_export_failed_msg)
             raise e

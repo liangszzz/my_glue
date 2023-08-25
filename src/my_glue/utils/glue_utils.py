@@ -1,8 +1,12 @@
+import uuid
 from typing import Any, Dict
 
 from awsglue import DynamicFrame
 from awsglue.context import DataFrame, GlueContext
+from boto3 import client
 from pyspark.context import SparkContext
+
+from my_glue.utils.s3_utils import rename_s3_file
 
 
 def get_glue_context() -> GlueContext:
@@ -84,10 +88,10 @@ def convert_dynamic_frame_to_data_frame(context: GlueContext, df: DynamicFrame, 
     return df.toDF(context, name)
 
 
-def export_data_frame_to_csv(
+def export_data_frame_to_csv_dir(
     df: DataFrame,
     s3_path: str,
-    repartition: int = 2,
+    repartition: int = 10,
     options: Dict[str, Any] = {
         "encoding": "utf-8",
         "quote": '"',
@@ -122,3 +126,26 @@ def export_data_frame_to_catalog(
     Exports a specified pandas DataFrame, `df`, to a Glue catalog database and table
     """
     df.write.format("glueparquet").mode("overwrite").options(**options).saveAsTable(database, table)
+
+
+def export_data_frame_to_csv(
+    df: DataFrame,
+    s3: client,
+    bucket: str,
+    s3_path: str,
+    options: Dict[str, Any] = {
+        "encoding": "utf-8",
+        "quote": '"',
+        "quoteAll": True,
+        "header": "true",
+        "escape": '"',
+    },
+) -> None:
+    df = df.repartition(1)
+    s3_tmp_path = f"s3://{bucket}/tmp/{ str(uuid.uuid4())}"
+    df.write.mode("overwrite").csv(s3_tmp_path, **options)
+    response = s3.list_objects(Bucket=bucket, Prefix=s3_tmp_path)
+    if "Contents" in response:
+        for obj in response["Contents"]:
+            if obj["Key"].startswith(s3_tmp_path + "/part"):
+                rename_s3_file(s3, bucket, obj["Key"], s3_path, True)
