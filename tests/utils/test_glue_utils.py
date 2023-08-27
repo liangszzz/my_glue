@@ -1,5 +1,4 @@
 from my_glue.utils import glue_utils, log_utils, s3_utils
-from awsglue.context import DataFrame, GlueContext
 
 logger = log_utils.get_logger(__name__)
 
