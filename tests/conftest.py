@@ -30,7 +30,6 @@ def glue_context():
         .config("fs.s3a.path.style.access", "true")
         .config("fs.s3a.connection.ssl.enabled", "false")
         .config("com.amazonaws.services.s3a.enableV4", "true")
-        .config("fs.s3a.aws.credentials.provider", "org.apache.hadoop.fs.s3a.TemporaryAWSCredentialsProvider")
         .getOrCreate()
     )
 

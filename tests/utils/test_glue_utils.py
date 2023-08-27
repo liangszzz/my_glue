@@ -20,5 +20,5 @@ def test_export_data_frame_to_csv(glue_context, s3) -> None:
         {"id": 3, "name": "Charlie", "age": 22},
     ]
     df = glue_context.createDataFrame(data)
-    glue_utils.export_data_frame_to_csv(df, s3, "output1", "output")
-    s3_utils.download_s3_bucket("output1", "download")
+    glue_utils.export_data_frame_to_csv(df, s3, "ryo-output1", "output.csv")
+    s3_utils.download_s3_bucket(s3, "ryo-output1", "download")

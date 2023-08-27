@@ -142,10 +142,11 @@ def export_data_frame_to_csv(
     },
 ) -> None:
     df = df.repartition(1)
-    s3_tmp_path = f"s3://{bucket}/tmp/{ str(uuid.uuid4())}"
+    uuid_str = str(uuid.uuid4())
+    s3_tmp_path = f"s3://{bucket}/tmp/{uuid_str}"
     df.write.mode("overwrite").csv(s3_tmp_path, **options)
-    response = s3.list_objects(Bucket=bucket, Prefix=s3_tmp_path)
+    response = s3.list_objects(Bucket=bucket, Prefix=f"tmp/{uuid_str}")
     if "Contents" in response:
         for obj in response["Contents"]:
-            if obj["Key"].startswith(s3_tmp_path + "/part"):
-                rename_s3_file(s3, bucket, obj["Key"], s3_path, True)
+            if obj["Key"].startswith(f"tmp/{uuid_str}/part"):
+                rename_s3_file(s3, bucket, bucket, obj["Key"], s3_path, True)

@@ -56,7 +56,9 @@ def delete_s3_file(s3: client, bucket: str, path: str) -> None:
     s3.delete_object(Bucket=bucket, Key=path)
 
 
-def rename_s3_file(s3: client, bucket: str, old_path: str, new_path: str, delete: bool) -> None:
+def rename_s3_file(
+    s3: client, input_bucket: str, output_bucket: str, input_path: str, output_path: str, delete: bool
+) -> None:
     """
     Rename a file from an S3 bucket at a given path.
 
@@ -67,12 +69,12 @@ def rename_s3_file(s3: client, bucket: str, old_path: str, new_path: str, delete
         None
     """
     s3.copy_object(
-        Bucket=bucket,
-        CopySource={"Bucket": bucket, "Key": old_path},
-        Key=new_path,
+        Bucket=output_bucket,
+        CopySource={"Bucket": input_bucket, "Key": input_path},
+        Key=output_path,
     )
     if delete:
-        s3.delete_object(Bucket=bucket, Key=old_path)
+        s3.delete_object(Bucket=input_bucket, Key=input_path)
 
 
 def upload_dir_or_file(local_path: str, s3: client, bucket: str):
