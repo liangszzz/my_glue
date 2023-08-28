@@ -7,26 +7,6 @@ def get_client() -> client:
     return client("s3")
 
 
-def check_s3_file_exist(s3: client, bucket: str, path: str) -> bool:
-    """
-    Check if a file exists in an S3 bucket at a given path.
-
-    Args:
-        s3 (boto3.client): the S3 client.
-        bucket (str): the S3 bucket.
-        path (str): the S3 path.
-
-    Returns:
-        bool: True if the file exists, False otherwise.
-    """
-
-    try:
-        s3.head_object(Bucket=bucket, Key=path)
-        return True
-    except Exception:
-        return False
-
-
 def check_s3_file_or_dir_exist(s3: client, bucket: str, path: str) -> bool:
     """
     Check if a file and directory exists in an S3 bucket at a given path.
@@ -40,7 +20,7 @@ def check_s3_file_or_dir_exist(s3: client, bucket: str, path: str) -> bool:
         bool: True if the file exists, False otherwise.
     """
     response = s3.list_objects_v2(Bucket=bucket, Prefix=path)
-    return "Contents" in response
+    return any(obj["Key"] == path for obj in response.get("Contents", []))
 
 
 def delete_s3_file(s3: client, bucket: str, path: str) -> None:
@@ -108,6 +88,7 @@ def download_s3_bucket(s3: client, bucket: str, local_path: str) -> None:
     Returns:
         None
     """
+    s3.put_object(Bucket=bucket, Key="dummy", Body=b"", ContentEncoding="gzip")
     response = s3.list_objects_v2(Bucket=bucket)
     if "Contents" in response:
         for obj in response["Contents"]:
