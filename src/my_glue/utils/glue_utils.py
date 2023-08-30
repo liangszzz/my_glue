@@ -1,5 +1,5 @@
 import uuid
-from typing import Any, Dict
+from typing import Any, Dict, List, Union
 
 from awsglue import DynamicFrame
 from awsglue.context import DataFrame, GlueContext
@@ -30,7 +30,7 @@ def get_data_frame_from_catalog(context: GlueContext, database: str, table: str)
 
 def load_df_from_s3_csv(
     context: GlueContext,
-    s3_path: str,
+    s3_path: Union[str, List[str]],
     options: Dict[str, Any] = {"header": "true", "encoding": "utf-8", "quote": '"', "escape": '"'},
 ) -> DataFrame:
     """
