@@ -5,6 +5,7 @@ from awsglue import DynamicFrame
 from awsglue.context import DataFrame, GlueContext
 from boto3 import client
 from pyspark.context import SparkContext
+from pyspark.sql.types import StructType
 
 from my_glue.utils.s3_utils import rename_s3_file
 
@@ -44,6 +45,23 @@ def load_df_from_s3_csv(
         DataFrame: The resulting `DataFrame`.
     """
     return context.spark_session.read.format("csv").options(**options).load(s3_path)
+
+
+def load_df_from_s3_csv_with_schema(
+    context: GlueContext,
+    s3_path: str,
+    schema: StructType,
+    options: Dict[str, Any] = {"header": "true", "encoding": "utf-8", "quote": '"', "escape": '"'},
+) -> DataFrame:
+    """
+    Creates a `DataFrame` from a CSV file stored on S3.
+    Args:
+        context (GlueContext): The Glue context object.
+        s3_path (str): The S3 path.
+    Returns:
+        DataFrame: The resulting `DataFrame`.
+    """
+    return context.spark_session.read.csv(s3_path, schema, **options)
 
 
 def load_df_from_s3_text(context: GlueContext, s3_path: str) -> DataFrame:
