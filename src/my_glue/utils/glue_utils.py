@@ -29,22 +29,24 @@ def get_data_frame_from_catalog(context: GlueContext, database: str, table: str)
     return context.create_data_frame.from_catalog(database, table)
 
 
-def load_df_from_s3_csv(
+def load_df_from_s3(
     context: GlueContext,
     s3_path: Union[str, List[str]],
     options: Dict[str, Any] = {"header": "true", "encoding": "utf-8", "quote": '"', "escape": '"'},
+    format: str = "csv",
+    schema: Union[StructType, str] = None,
 ) -> DataFrame:
     """
     Creates a DataFrame from a CSV file stored on S3 using GlueContext. Takes in three parameters:
     Args:
         context (GlueContext): The Glue context object.
-        s3_path (str): The S3 path.
-        format_options (dict): The format options
-
+        s3_path (str): The S3 Full path. s3://bucket/path or [s3://bucket/path, s3://bucket/path]
+        format_options (dict): The format options, defaults to csv
+        format (str): The format of the file, defaults to csv
     Returns:
         DataFrame: The resulting `DataFrame`.
     """
-    return context.spark_session.read.format("csv").options(**options).load(s3_path)
+    return context.spark_session.read.options(**options).load(s3_path, format=format, schema=schema)
 
 
 def load_df_from_s3_csv_with_schema(
@@ -116,13 +118,15 @@ def export_data_frame_to_csv_dir(
         "quoteAll": True,
         "header": "true",
         "escape": '"',
+        "ignoreLeadingWhiteSpace": True,
+        "ignoreTrailingWhiteSpace": True,
     },
 ) -> None:
     """
     Exports a specified pandas DataFrame, `df`, to a CSV file stored on S3
 
     Args:
-        df (DataFrame): The pandas DataFrame.
+        df (DataFrame): The DataFrame.
         s3_path (str): The S3 path.
         repartition (int): The number of partitions.
         options (Dict[str, Any]): The options
@@ -130,8 +134,7 @@ def export_data_frame_to_csv_dir(
     Returns:
         None
     """
-    df = df.repartition(repartition)
-    df.write.mode("overwrite").csv(s3_path, **options)
+    df.repartition(repartition).write.mode("overwrite").option("maxRecordsPerFile", 500000).csv(s3_path, **options)
 
 
 def export_data_frame_to_catalog(
@@ -168,3 +171,7 @@ def export_data_frame_to_csv(
         for obj in response["Contents"]:
             if obj["Key"].startswith(f"tmp/{uuid_str}/part"):
                 rename_s3_file(s3, bucket, bucket, obj["Key"], s3_path, True)
+
+
+def check_df_count_is_zero(df: DataFrame) -> bool:
+    return df.select("1").limit(1).count() == 0

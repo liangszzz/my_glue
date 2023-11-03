@@ -1,6 +1,17 @@
 from my_glue.utils.log_utils import get_logger
+import time
 
 logger = get_logger(__name__)
+
+
+def time_decorator(func):
+    def wrapper(*args, **kwargs) -> func:
+        start = time.time()
+        res = func(*args, **kwargs)
+        logger.info(f"{func.__name__} execute time: {time.time() - start}")
+        return res
+
+    return wrapper
 
 
 def exception_decorator(func):
@@ -23,7 +34,7 @@ class BizException(Exception):
     """
 
     def __init__(self, message):
-        super().__init__("Biz exception: {0}".format(message))
+        super().__init__(message)
 
 
 class ParamNotFoundException(Exception):

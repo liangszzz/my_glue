@@ -7,11 +7,12 @@ import my_glue.common.exceptions as exceptions
 import my_glue.utils.glue_utils as glue_utils
 import my_glue.utils.s3_utils as s3_utils
 from my_glue.utils import log_utils
+from typing import Union, Any
 
 
 class InputSource(ABC):
     @abstractmethod
-    def load_data(self) -> DataFrame:
+    def load_data(self) -> Union[DataFrame, None]:
         """
         get data from source
         """
@@ -30,7 +31,7 @@ class InputS3FileSource(InputSource):
         file_not_exist_msg: str = "File does not exist",
         file_count_is_0_msg: str = "File {0} count is 0",
         file_count_msg: str = "File count is {0}",
-        default_schema: str = None,
+        default_schema: Union[str, None] = None,
     ) -> None:
         """
         input source csv file
@@ -46,6 +47,7 @@ class InputS3FileSource(InputSource):
             file_count_is_0_msg (str): file count is 0 message
             file_count_msg (str): file count message
             default_schema (str): default schema
+
         """
         self.context = context
         self.s3 = s3
@@ -59,17 +61,20 @@ class InputS3FileSource(InputSource):
         self.logger = log_utils.get_logger(type(self).__name__)
         self.default_schema = default_schema
 
-    def load_data(self) -> DataFrame:
+    def load_data(self) -> Union[DataFrame, None]:
         file_exists = s3_utils.check_s3_file_or_dir_exist(self.s3, self.bucket, self.path)
+
         if file_exists is False and self.required is True:
             raise exceptions.FileNotFoundException(self.file_not_exist_msg.format(f"s3://{self.bucket}/{self.path}"))
+
         elif file_exists is False and self.required is False:
             df = self.context.createDataFrame([], self.default_schema)
             df.createOrReplaceTempView(self.table_name)
             self.logger.info(self.file_not_exist_msg)
             return df
 
-        df = glue_utils.load_df_from_s3_csv(self.context, f"s3://{self.bucket}/{self.path}")
+        df = glue_utils.load_df_from_s3(self.context, f"s3://{self.bucket}/{self.path}")
+
         if df.count() == 0 and self.required is True:
             self.logger.info(self.file_count_is_0_msg.format(self.table_name))
             return None
@@ -88,7 +93,6 @@ class InputCatlogSource(InputSource):
         table_not_exist_msg: str = "Table does not exist {0}",
         table_count_is_0_msg: str = "Table {0} count is 0",
         table_count_msg: str = "Table count is {0}",
-        default_schema: str = None,
     ) -> None:
         self.context = context
         self.database = database
@@ -97,8 +101,9 @@ class InputCatlogSource(InputSource):
         self.table_not_exist_msg = table_not_exist_msg
         self.table_count_is_0_msg = table_count_is_0_msg
         self.table_count_msg = table_count_msg
+        self.logger = log_utils.get_logger(type(self).__name__)
 
-    def load_data(self) -> DataFrame:
+    def load_data(self) -> Union[DataFrame, None]:
         df = self.context.create_data_frame_from_catalog(database=self.database, table_name=self.table_name)
         if df.count() == 0 and self.required is True:
             self.logger.info(self.table_count_is_0_msg.format(self.table_name))
