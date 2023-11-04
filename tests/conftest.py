@@ -1,3 +1,4 @@
+import shutil
 import sys
 
 import pytest
@@ -63,6 +64,15 @@ def s3_handler(s3):
     s3_create_bucket(s3)
     yield
     s3_delete_bucket(s3)
+
+
+@pytest.fixture(scope="session", autouse=False)
+def local_pre():
+    try:
+        shutil.rmtree("/home/glue_user/workspace/my_glue/download")
+    except:
+        pass
+    return "/home/glue_user/workspace/my_glue/"
 
 
 def s3_create_bucket(s3):

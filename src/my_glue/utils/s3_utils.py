@@ -37,7 +37,7 @@ def delete_s3_file(s3: client, bucket: str, path: str) -> None:
 
 
 def rename_s3_file(
-    s3: client, input_bucket: str, output_bucket: str, input_path: str, output_path: str, delete: bool
+        s3: client, input_bucket: str, output_bucket: str, input_path: str, output_path: str, delete: bool
 ) -> None:
     """
     Rename a file from an S3 bucket at a given path.
@@ -88,7 +88,6 @@ def download_s3_bucket(s3: client, bucket: str, local_path: str) -> None:
     Returns:
         None
     """
-    s3.put_object(Bucket=bucket, Key="dummy", Body=b"", ContentEncoding="gzip")
     response = s3.list_objects_v2(Bucket=bucket)
     if "Contents" in response:
         for obj in response["Contents"]:

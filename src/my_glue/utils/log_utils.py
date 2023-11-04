@@ -8,7 +8,7 @@ import pytz
 def get_logger(name):
     logger = logging.getLogger(name)
     logger.setLevel(logging.DEBUG)
-    file_handler = RotatingFileHandler("log.log", encoding="utf-8", maxBytes=2 * 1024 * 1024, backupCount=1)
+    file_handler = RotatingFileHandler("/home/glue_user/workspace/my_glue/log.log", encoding="utf-8", maxBytes=2 * 1024 * 1024, backupCount=1)
     file_handler.setLevel(logging.DEBUG)
 
     stream_handler = logging.StreamHandler()

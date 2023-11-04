@@ -30,11 +30,11 @@ def get_data_frame_from_catalog(context: GlueContext, database: str, table: str)
 
 
 def load_df_from_s3(
-    context: GlueContext,
-    s3_path: Union[str, List[str]],
-    options: Dict[str, Any] = {"header": "true", "encoding": "utf-8", "quote": '"', "escape": '"'},
-    format: str = "csv",
-    schema: Union[StructType, str] = None,
+        context: GlueContext,
+        s3_path: Union[str, List[str]],
+        options: Dict[str, Any] = {"header": "true", "encoding": "utf-8", "quote": '"', "escape": '"'},
+        format: str = "csv",
+        schema: Union[StructType, str] = None,
 ) -> DataFrame:
     """
     Creates a DataFrame from a CSV file stored on S3 using GlueContext. Takes in three parameters:
@@ -46,14 +46,17 @@ def load_df_from_s3(
     Returns:
         DataFrame: The resulting `DataFrame`.
     """
-    return context.spark_session.read.options(**options).load(s3_path, format=format, schema=schema)
+    if schema is None:
+        return context.spark_session.read.format(format).options(**options).load(s3_path)
+    else:
+        return context.spark_session.read.format(format).options(**options).load(s3_path, schema=schema)
 
 
 def load_df_from_s3_csv_with_schema(
-    context: GlueContext,
-    s3_path: str,
-    schema: StructType,
-    options: Dict[str, Any] = {"header": "true", "encoding": "utf-8", "quote": '"', "escape": '"'},
+        context: GlueContext,
+        s3_path: str,
+        schema: StructType,
+        options: Dict[str, Any] = {"header": "true", "encoding": "utf-8", "quote": '"', "escape": '"'},
 ) -> DataFrame:
     """
     Creates a `DataFrame` from a CSV file stored on S3.
@@ -109,18 +112,18 @@ def convert_dynamic_frame_to_data_frame(context: GlueContext, df: DynamicFrame, 
 
 
 def export_data_frame_to_csv_dir(
-    df: DataFrame,
-    s3_path: str,
-    repartition: int = 10,
-    options: Dict[str, Any] = {
-        "encoding": "utf-8",
-        "quote": '"',
-        "quoteAll": True,
-        "header": "true",
-        "escape": '"',
-        "ignoreLeadingWhiteSpace": True,
-        "ignoreTrailingWhiteSpace": True,
-    },
+        df: DataFrame,
+        s3_path: str,
+        repartition: int = 10,
+        options: Dict[str, Any] = {
+            "encoding": "utf-8",
+            "quote": '"',
+            "quoteAll": True,
+            "header": "true",
+            "escape": '"',
+            "ignoreLeadingWhiteSpace": True,
+            "ignoreTrailingWhiteSpace": True,
+        },
 ) -> None:
     """
     Exports a specified pandas DataFrame, `df`, to a CSV file stored on S3
@@ -138,10 +141,10 @@ def export_data_frame_to_csv_dir(
 
 
 def export_data_frame_to_catalog(
-    df: DataFrame,
-    database: str,
-    table: str,
-    options: Dict[str, Any] = {"encoding": "utf-8"},
+        df: DataFrame,
+        database: str,
+        table: str,
+        options: Dict[str, Any] = {"encoding": "utf-8"},
 ) -> None:
     """
     Exports a specified pandas DataFrame, `df`, to a Glue catalog database and table
@@ -150,17 +153,17 @@ def export_data_frame_to_catalog(
 
 
 def export_data_frame_to_csv(
-    df: DataFrame,
-    s3: client,
-    bucket: str,
-    s3_path: str,
-    options: Dict[str, Any] = {
-        "encoding": "utf-8",
-        "quote": '"',
-        "quoteAll": True,
-        "header": "true",
-        "escape": '"',
-    },
+        df: DataFrame,
+        s3: client,
+        bucket: str,
+        s3_path: str,
+        options: Dict[str, Any] = {
+            "encoding": "utf-8",
+            "quote": '"',
+            "quoteAll": True,
+            "header": "true",
+            "escape": '"',
+        },
 ) -> None:
     df = df.repartition(1)
     uuid_str = str(uuid.uuid4())
