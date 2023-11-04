@@ -1,5 +1,6 @@
-from my_glue.utils.log_utils import get_logger
 import time
+
+from my_glue.utils.log_utils import get_logger
 
 logger = get_logger(__name__)
 

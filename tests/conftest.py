@@ -6,7 +6,6 @@ from boto3 import client as client
 
 from my_glue.utils import log_utils
 
-
 input_bucket = "ryo-input"
 output_bucket = "ryo-output"
 

@@ -1,6 +1,6 @@
 from my_glue.etl.etl002 import Etl
-from my_glue.utils.s3_utils import upload_dir_or_file, download_s3_bucket
 from my_glue.utils.glue_utils import load_df_from_s3
+from my_glue.utils.s3_utils import download_s3_bucket, upload_dir_or_file
 
 
 def test_run(glue_context, s3, caplog):

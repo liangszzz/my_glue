@@ -1,4 +1,5 @@
 from abc import ABC, abstractmethod
+from typing import Any, Union
 
 from awsglue.context import DataFrame, GlueContext
 from boto3 import client
@@ -7,7 +8,6 @@ import my_glue.common.exceptions as exceptions
 import my_glue.utils.glue_utils as glue_utils
 import my_glue.utils.s3_utils as s3_utils
 from my_glue.utils import log_utils
-from typing import Union, Any
 
 
 class InputSource(ABC):

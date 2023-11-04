@@ -1,9 +1,6 @@
-from my_glue.common.exceptions import (
-    BizException,
-    FileNotFoundException,
-    ParamNotFoundException,
-    exception_decorator,
-)
+from my_glue.common.exceptions import (BizException, FileNotFoundException,
+                                       ParamNotFoundException,
+                                       exception_decorator)
 
 
 @exception_decorator

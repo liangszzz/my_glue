@@ -1,5 +1,7 @@
-from boto3 import client
 from typing import Union
+
+from boto3 import client
+
 from my_glue.common.exceptions import BizException
 
 
