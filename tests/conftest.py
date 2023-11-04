@@ -56,14 +56,14 @@ def clear_sys_argv():
     sys.argv.append("--JOB_NAME")
     sys.argv.append("test")
     sys.argv.append("--JOB_NAME=test")
+    sys.argv.append("--dev")
     logger.info("--------------------------end args init---------------------------")
 
 
 @pytest.fixture(scope="session", autouse=True)
 def s3_handler(s3):
-    s3_create_bucket(s3)
-    yield
     s3_delete_bucket(s3)
+    s3_create_bucket(s3)
 
 
 @pytest.fixture(scope="session", autouse=False)
@@ -77,7 +77,7 @@ def local_pre():
 
 def s3_create_bucket(s3):
     logger.info("--------------------------start s3 bucket create---------------------------")
-    for i in range(1, 10):
+    for i in range(0, 10):
         try:
             s3.head_bucket(Bucket=input_bucket + str(i))
         except Exception:
@@ -85,7 +85,7 @@ def s3_create_bucket(s3):
                 Bucket=input_bucket + str(i),
                 CreateBucketConfiguration={"LocationConstraint": region_name},
             )
-    for i in range(1, 10):
+    for i in range(0, 10):
         try:
             s3.head_bucket(Bucket=output_bucket + str(i))
         except Exception:
@@ -98,20 +98,26 @@ def s3_create_bucket(s3):
 
 def s3_delete_bucket(s3):
     logger.info("--------------------------start s3 bucket delete---------------------------")
-    for i in range(1, 10):
-        response = s3.list_objects_v2(Bucket=input_bucket + str(i))
-        if "Contents" in response:
-            objects = response["Contents"]
-            for obj in objects:
-                file_key = obj["Key"]
-                s3.delete_object(Bucket=input_bucket + str(i), Key=file_key)
-        s3.delete_bucket(Bucket=input_bucket + str(i))
-    for i in range(1, 10):
-        response = s3.list_objects_v2(Bucket=output_bucket + str(i))
-        if "Contents" in response:
-            objects = response["Contents"]
-            for obj in objects:
-                file_key = obj["Key"]
-                s3.delete_object(Bucket=output_bucket + str(i), Key=file_key)
-        s3.delete_bucket(Bucket=output_bucket + str(i))
+    for i in range(0, 10):
+        try:
+            response = s3.list_objects_v2(Bucket=input_bucket + str(i))
+            if "Contents" in response:
+                objects = response["Contents"]
+                for obj in objects:
+                    file_key = obj["Key"]
+                    s3.delete_object(Bucket=input_bucket + str(i), Key=file_key)
+            s3.delete_bucket(Bucket=input_bucket + str(i))
+        except:
+            pass
+    for i in range(0, 10):
+        try:
+            response = s3.list_objects_v2(Bucket=output_bucket + str(i))
+            if "Contents" in response:
+                objects = response["Contents"]
+                for obj in objects:
+                    file_key = obj["Key"]
+                    s3.delete_object(Bucket=output_bucket + str(i), Key=file_key)
+            s3.delete_bucket(Bucket=output_bucket + str(i))
+        except:
+            pass
     logger.info("--------------------------end s3 bucket delete---------------------------")

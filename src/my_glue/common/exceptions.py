@@ -54,3 +54,12 @@ class FileNotFoundException(Exception):
 
     def __init__(self, message):
         super().__init__("file [{0}] is not found".format(message))
+
+
+class S3FileNotExistException(Exception):
+    """
+    file not found exception
+    """
+
+    def __init__(self, s3_file_path):
+        super().__init__("s3 file [{0}] is not found".format(s3_file_path))

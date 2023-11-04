@@ -1,13 +1,43 @@
 import os
+import sys
 
-from boto3 import client
+from boto3 import client, resource
+
+from my_glue.common.exceptions import S3FileNotExistException
+
+endpoint_url = "http://localstack:4566"
+aws_access_key_id = "test"
+aws_secret_access_key = "test"
+region_name = "ap-northeast-1"
 
 
 def get_client() -> client:
+    if "--dev" in sys.argv:
+        return client(
+            "s3",
+            endpoint_url=endpoint_url,
+            aws_access_key_id=aws_access_key_id,
+            aws_secret_access_key=aws_secret_access_key,
+            region_name=region_name,
+            use_ssl=False,
+        )
     return client("s3")
 
 
-def check_s3_file_or_dir_exist(s3: client, bucket: str, path: str) -> bool:
+def get_resource() -> client:
+    if "--dev" in sys.argv:
+        return resource(
+            "s3",
+            endpoint_url=endpoint_url,
+            aws_access_key_id=aws_access_key_id,
+            aws_secret_access_key=aws_secret_access_key,
+            region_name=region_name,
+            use_ssl=False,
+        )
+    return resource("s3")
+
+
+def check_s3_file_or_dir_exist(s3: client, bucket: str, path: str, dir: bool = True) -> bool:
     """
     Check if a file and directory exists in an S3 bucket at a given path.
 
@@ -20,6 +50,8 @@ def check_s3_file_or_dir_exist(s3: client, bucket: str, path: str) -> bool:
         bool: True if the file exists, False otherwise.
     """
     response = s3.list_objects_v2(Bucket=bucket, Prefix=path)
+    if dir:
+        return "Contents" in response
     return any(obj["Key"] == path for obj in response.get("Contents", []))
 
 
@@ -36,6 +68,22 @@ def delete_s3_file(s3: client, bucket: str, path: str) -> None:
     s3.delete_object(Bucket=bucket, Key=path)
 
 
+def read_s3_file(s3: client, bucket: str, path: str) -> str:
+    """
+    Read a file from an S3 bucket at a given path.
+    Args:
+        s3 (boto3.client): the S3 client.
+        bucket (str): the S3 bucket.
+        path (str): the S3 path.
+    Returns:
+        str: the content of the file.
+    """
+    response = s3.get_object(Bucket=bucket, Key=path)
+    if "Body" in response:
+        return response["Body"].read().decode("utf-8")
+    raise S3FileNotExistException(f"s3://{bucket}/{path}")
+
+
 def rename_s3_file(
         s3: client, input_bucket: str, output_bucket: str, input_path: str, output_path: str, delete: bool
 ) -> None:
@@ -48,7 +96,8 @@ def rename_s3_file(
     Returns:
         None
     """
-    s3.copy_object(
+    s3_meta = get_resource()
+    s3_meta.meta.client.copy(
         Bucket=output_bucket,
         CopySource={"Bucket": input_bucket, "Key": input_path},
         Key=output_path,
