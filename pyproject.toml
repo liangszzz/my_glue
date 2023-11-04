@@ -4,19 +4,12 @@ version = "0.1.0"
 description = ""
 authors = ["liangszzz <liang-shan@outlook.com>"]
 readme = "README.md"
-packages = [{include = "my_glue", from = "src"}]
+packages = [{ include = "my_glue", from = "src" }]
 
 [tool.poetry.dependencies]
 python = "^3.10.2"
-awscli = "^1.29.26"
-boto3 = "^1.28.26"
-cython = "^3.0.0"
-numpy = "^1.25.2"
-pandas = "^2.0.3"
-pytz = "^2023.3"
-pyyaml = "^6.0.1"
-requests = "^2.31.0"
-
+boto3 = "^1.24.70"
+pytz = "^2021.1"
 
 
 [tool.poetry.group.dev.dependencies]
