@@ -7,7 +7,7 @@ from boto3 import client
 from pyspark.context import SparkContext
 from pyspark.sql.types import StructType
 
-from my_glue.utils.s3_utils import rename_s3_file, get_client
+from my_glue.utils.s3_utils import get_client, rename_s3_file
 
 
 def get_glue_context() -> GlueContext:

@@ -1,6 +1,6 @@
 import sys
 from abc import ABC
-from typing import Dict, List, Any
+from typing import Any, Dict, List
 
 from awsglue.context import DataFrame, GlueContext
 from awsglue.job import Job

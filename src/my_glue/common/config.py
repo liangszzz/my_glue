@@ -5,7 +5,7 @@ from typing import Dict, Union
 
 from boto3 import client
 
-from my_glue.utils.s3_utils import read_s3_file, get_client
+from my_glue.utils.s3_utils import get_client, read_s3_file
 
 
 class ConfigFile(Enum):
