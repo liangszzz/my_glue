@@ -1,50 +1,50 @@
 import sys
 from abc import ABC
-from typing import Dict, List
+from typing import Dict, List, Any
 
 from awsglue.context import DataFrame, GlueContext
 from awsglue.job import Job
 from awsglue.utils import getResolvedOptions
-from boto3 import client
 
 from my_glue.common import exceptions
 from my_glue.common.config import (Config, ConfigFile, InputOutputConfig,
                                    InputOutType)
-from my_glue.utils import glue_utils, s3_utils, sys_utils
+from my_glue.utils import glue_utils, s3_utils, sys_utils, time_utils
 from my_glue.utils.log_utils import get_logger
+from my_glue.utils.s3_utils import get_client
 
 
 class Base(ABC):
-    def __init__(self, context: GlueContext, s3: client) -> None:
+    def __init__(self, context: GlueContext, config: Config) -> None:
+        self.args = []
+        self.job = None
         self.context = context
         self.spark = context.spark_session
-        self.s3 = s3
         self.logger = get_logger(type(self).__name__)
-
         self.optional_params: List[str] = []
         self.require_params: List[str] = []
+        self.config_dict: Dict[str, str] = {}
+        self.config = config
 
-        self.dict: Dict[str, str] = {}
-
-    def init_config(self, config: Config) -> None:
-        self.dict = config.load_config()
+    def init_config(self) -> None:
+        self.config_dict = self.config.load_config()
 
     def logger_start(self) -> None:
-        if ConfigFile.LOGGER_START_MSG.value in self.dict:
-            self.logger.info(self.dict[ConfigFile.LOGGER_START_MSG.value])
+        if ConfigFile.LOGGER_START_MSG.value in self.config_dict:
+            self.logger.info(self.config_dict[ConfigFile.LOGGER_START_MSG.value])
         return None
 
     def init_optional_params(self) -> None:
-        if ConfigFile.OPTIONAL_PARAMS.value in self.dict:
-            arr = self.dict[ConfigFile.OPTIONAL_PARAMS.value].split(",")
+        if ConfigFile.OPTIONAL_PARAMS.value in self.config_dict:
+            arr = self.config_dict[ConfigFile.OPTIONAL_PARAMS.value].split(",")
             for item in arr:
                 if sys_utils.check_sys_arg_exists(item, "--"):
                     self.optional_params.append(item)
         return None
 
     def init_required_params(self) -> None:
-        if ConfigFile.REQUIRED_PARAMS.value in self.dict:
-            self.require_params.extend(self.dict[ConfigFile.REQUIRED_PARAMS.value].split(","))
+        if ConfigFile.REQUIRED_PARAMS.value in self.config_dict:
+            self.require_params.extend(self.config_dict[ConfigFile.REQUIRED_PARAMS.value].split(","))
         return None
 
     def check_required_params(self) -> None:
@@ -60,7 +60,11 @@ class Base(ABC):
         self.job.init(self.args["JOB_NAME"], self.args)
 
     def handler_args(self) -> None:
-        return None
+        if "action_date" in self.args:
+            date_obj = time_utils.str_to_date(self.args["action_date"], time_utils.FORMAT_YYYYMMDD)
+        else:
+            date_obj = time_utils.get_today()
+        self.action_date = time_utils.get_date_str(date_obj, time_utils.FORMAT_YYYYMMDD)
 
     def commit_job(self) -> None:
         self.job.commit()
@@ -75,12 +79,13 @@ class Base(ABC):
         return None
 
     def logger_end(self) -> None:
-        if ConfigFile.LOGGER_END_MSG.value in self.dict:
-            self.logger.info(self.dict[ConfigFile.LOGGER_END_MSG.value])
+        if ConfigFile.LOGGER_END_MSG.value in self.config_dict:
+            self.logger.info(self.config_dict[ConfigFile.LOGGER_END_MSG.value])
         return None
 
     @exceptions.exception_decorator
     def run(self) -> None:
+        self.init_config()
         self.logger_start()
         self.init_optional_params()
         self.init_required_params()
@@ -94,21 +99,20 @@ class Base(ABC):
         self.logger_end()
 
     def load_s3_file(self, section: str, cache_flag: bool = False, create_view_flag: bool = True,
-                     prefix_fuc=None) -> DataFrame:
-        bucket = self.dict[f"{section}.{InputOutputConfig.BUCKET.value}"]
+                     prefix_map: Dict[str, str] = None) -> DataFrame:
+        bucket = self.config_dict[f"{section}.{InputOutputConfig.BUCKET.value}"]
 
-        prefix = self.dict[f"{section}.{InputOutputConfig.PATH.value}"]
-        if prefix_fuc is not None:
-            prefix = prefix_fuc(prefix)
+        prefix = self.config_dict[f"{section}.{InputOutputConfig.PATH.value}"]
+        if prefix_map is not None:
+            prefix = prefix.format_map(prefix_map)
+        view_name = self.config_dict[f"{section}.{InputOutputConfig.TABLE_NAME.value}"]
+        required = self.config_dict[f"{section}.{InputOutputConfig.REQUIRED.value}"]
+        schema = self.config_dict[f"{section}.{InputOutputConfig.SCHEMA.value}"]
 
-        view_name = self.dict[f"{section}.{InputOutputConfig.TABLE_NAME.value}"]
-        required = self.dict[f"{section}.{InputOutputConfig.REQUIRED.value}"]
-        schema = self.dict[f"{section}.{InputOutputConfig.SCHEMA.value}"]
-
-        file_type = self.dict[f"{section}.{InputOutputConfig.TYPE.value}"]
-
+        file_type = self.config_dict[f"{section}.{InputOutputConfig.TYPE.value}"]
+        s3 = get_client()
         if file_type == InputOutType.S3_DIR.value:
-            if s3_utils.check_s3_file_or_dir_exist(self.s3, bucket, prefix):
+            if s3_utils.check_s3_file_or_dir_exist(s3, bucket, prefix):
                 df = glue_utils.load_df_from_s3(self.context, f"s3://{bucket}/{prefix}")
             else:
                 if required == "True":
@@ -117,7 +121,7 @@ class Base(ABC):
                     df = self.context.createDataFrame([], schema)
 
         elif file_type == InputOutType.S3_CSV.value:
-            if s3_utils.check_s3_file_or_dir_exist(self.s3, bucket, prefix, dir=False):
+            if s3_utils.check_s3_file_or_dir_exist(s3, bucket, prefix, dir=False):
                 df = glue_utils.load_df_from_s3(self.context, f"s3://{bucket}/{prefix}")
             else:
                 if required == "True":
@@ -126,7 +130,7 @@ class Base(ABC):
                     df = self.context.createDataFrame([], schema)
 
         elif file_type == InputOutType.S3_TEXT.value:
-            if s3_utils.check_s3_file_or_dir_exist(self.s3, bucket, prefix, dir=False):
+            if s3_utils.check_s3_file_or_dir_exist(s3, bucket, prefix, dir=False):
                 df = glue_utils.load_df_from_s3_text(self.context, f"s3://{bucket}/{prefix}")
             else:
                 if required == "True":
@@ -141,15 +145,17 @@ class Base(ABC):
             df.createOrReplaceTempView(view_name)
         return df
 
-    def export_to_s3(self, section: str, df: DataFrame) -> None:
-        file_type = self.dict[f"{section}.{InputOutputConfig.TYPE.value}"]
-        bucket = self.dict[f"{section}.{InputOutputConfig.BUCKET.value}"]
-        prefix = self.dict[f"{section}.{InputOutputConfig.PATH.value}"]
+    def export_to_s3(self, section: str, df: DataFrame, prefix_map: Dict[str, str] = None) -> None:
+        file_type = self.config_dict[f"{section}.{InputOutputConfig.TYPE.value}"]
+        bucket = self.config_dict[f"{section}.{InputOutputConfig.BUCKET.value}"]
+        prefix = self.config_dict[f"{section}.{InputOutputConfig.PATH.value}"]
+        if prefix_map is not None:
+            prefix = prefix.format_map((prefix_map))
         if file_type == InputOutType.S3_DIR.value:
             glue_utils.export_data_frame_to_csv_dir(df, f"s3://{bucket}/{prefix}")
 
         elif file_type == InputOutType.S3_CSV.value:
-            glue_utils.export_data_frame_to_csv(df, self.s3, bucket, prefix)
+            glue_utils.export_data_frame_to_csv(df, bucket, prefix)
         else:
             raise Exception("not use exception")
         return None

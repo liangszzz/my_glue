@@ -7,7 +7,7 @@ from boto3 import client
 from pyspark.context import SparkContext
 from pyspark.sql.types import StructType
 
-from my_glue.utils.s3_utils import rename_s3_file
+from my_glue.utils.s3_utils import rename_s3_file, get_client
 
 
 def get_glue_context() -> GlueContext:
@@ -154,7 +154,6 @@ def export_data_frame_to_catalog(
 
 def export_data_frame_to_csv(
         df: DataFrame,
-        s3: client,
         bucket: str,
         s3_path: str,
         options: Dict[str, Any] = {
@@ -167,12 +166,13 @@ def export_data_frame_to_csv(
 ) -> None:
     df = df.repartition(1)
     uuid_str = str(uuid.uuid4())
-    s3_tmp_path = f"s3://{bucket}/tmp/{uuid_str}"
+    s3_tmp_path = f"s3://{bucket}/{uuid_str}"
+    s3 = get_client()
     df.write.mode("overwrite").csv(s3_tmp_path, **options)
-    response = s3.list_objects(Bucket=bucket, Prefix=f"tmp/{uuid_str}")
+    response = s3.list_objects(Bucket=bucket, Prefix=f"{uuid_str}")
     if "Contents" in response:
         for obj in response["Contents"]:
-            if obj["Key"].startswith(f"tmp/{uuid_str}/part"):
+            if obj["Key"].startswith(f"{uuid_str}/part"):
                 rename_s3_file(s3, bucket, bucket, obj["Key"], s3_path, True)
 
 

@@ -10,10 +10,17 @@ aws_access_key_id = "test"
 aws_secret_access_key = "test"
 region_name = "ap-northeast-1"
 
+s3_cache = {
+    "s3": None,
+    "s3r": None
+}
+
 
 def get_client() -> client:
+    if s3_cache["s3"] is not None:
+        return s3_cache["s3"]
     if "--dev" in sys.argv:
-        return client(
+        s3 = client(
             "s3",
             endpoint_url=endpoint_url,
             aws_access_key_id=aws_access_key_id,
@@ -21,12 +28,18 @@ def get_client() -> client:
             region_name=region_name,
             use_ssl=False,
         )
-    return client("s3")
+    else:
+        s3 = client("s3")
+    s3_cache["s3"] = s3
+    return s3
 
 
 def get_resource() -> client:
+    if s3_cache["s3r"] is not None:
+        return s3_cache["s3r"]
+
     if "--dev" in sys.argv:
-        return resource(
+        s3r = resource(
             "s3",
             endpoint_url=endpoint_url,
             aws_access_key_id=aws_access_key_id,
@@ -34,7 +47,10 @@ def get_resource() -> client:
             region_name=region_name,
             use_ssl=False,
         )
-    return resource("s3")
+    else:
+        s3r = resource("s3")
+    s3_cache["s3r"] = s3r
+    return s3r
 
 
 def check_s3_file_or_dir_exist(s3: client, bucket: str, path: str, dir: bool = True) -> bool:
@@ -96,8 +112,8 @@ def rename_s3_file(
     Returns:
         None
     """
-    s3_meta = get_resource()
-    s3_meta.meta.client.copy(
+    s3r = get_resource()
+    s3r.meta.client.copy(
         Bucket=output_bucket,
         CopySource={"Bucket": input_bucket, "Key": input_path},
         Key=output_path,

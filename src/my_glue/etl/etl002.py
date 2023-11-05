@@ -7,9 +7,8 @@ from my_glue.utils import glue_utils, s3_utils
 
 
 class Etl(Base):
-    def __init__(self, context: GlueContext, s3: client, config: Config) -> None:
-        super().__init__(context, s3)
-        self.dict = config.load_config()
+    def __init__(self, context: GlueContext, config: Config) -> None:
+        super().__init__(context, config)
 
     def load_data(self) -> None:
         self.load_s3_file("input1")
@@ -34,7 +33,7 @@ class Etl(Base):
                     user_view
                     JOIN address_view ON user_view.address_code = address_view.address_code
             """
-        self.export_df = self.context.spark_session.sql(sql)
+        self.export_df = self.spark.sql(sql)
 
     def export_data(self) -> None:
         self.export_to_s3("output1", self.export_df)
@@ -42,6 +41,5 @@ class Etl(Base):
 
 if __name__ == "__main__":
     context = glue_utils.get_glue_context()
-    s3 = s3_utils.get_client()
-    config = Config(ConfigType.S3, s3, "ryozen-glue", "etl002/etl002.ini", None)
-    Etl(context, s3, config).run()
+    config = Config(ConfigType.S3, "ryozen-glue", "etl002/etl002.ini", None)
+    Etl(context, config).run()

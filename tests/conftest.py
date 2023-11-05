@@ -6,6 +6,7 @@ from awsglue.context import GlueContext, SparkSession
 from boto3 import client as client
 
 from my_glue.utils import log_utils
+from my_glue.utils.s3_utils import get_client
 
 input_bucket = "ryo-input"
 output_bucket = "ryo-output"
@@ -16,6 +17,17 @@ aws_secret_access_key = "test"
 region_name = "ap-northeast-1"
 
 logger = log_utils.get_logger(__name__)
+
+
+@pytest.fixture(scope="function", autouse=True)
+def clear_sys_argv():
+    logger.info("--------------------------start args init---------------------------")
+    sys.argv.clear()
+    sys.argv.append("--JOB_NAME")
+    sys.argv.append("test")
+    sys.argv.append("--JOB_NAME=test")
+    sys.argv.append("--dev")
+    logger.info("--------------------------end args init---------------------------")
 
 
 @pytest.fixture(scope="session")
@@ -39,28 +51,11 @@ def glue_context():
 @pytest.fixture(scope="session")
 def s3():
     logger.info("--------------------------start s3 init---------------------------")
-    return client(
-        "s3",
-        endpoint_url=endpoint_url,
-        aws_access_key_id=aws_access_key_id,
-        aws_secret_access_key=aws_secret_access_key,
-        region_name=region_name,
-        use_ssl=False,
-    )
+    sys.argv.append("--dev")
+    return get_client()
 
 
 @pytest.fixture(scope="function", autouse=True)
-def clear_sys_argv():
-    logger.info("--------------------------start args init---------------------------")
-    sys.argv.clear()
-    sys.argv.append("--JOB_NAME")
-    sys.argv.append("test")
-    sys.argv.append("--JOB_NAME=test")
-    sys.argv.append("--dev")
-    logger.info("--------------------------end args init---------------------------")
-
-
-@pytest.fixture(scope="session", autouse=True)
 def s3_handler(s3):
     s3_delete_bucket(s3)
     s3_create_bucket(s3)

@@ -26,7 +26,7 @@ def get_time_str(time: datetime = datetime.now(tz), format: str = FORMAT_YYYY_MM
     return time.strftime(format)
 
 
-def get_date_str(date_obj: date = date.today(tz), format: str = FORMAT_YYYY_MM_DD) -> str:
+def get_date_str(date_obj: date = date.today(), format: str = FORMAT_YYYY_MM_DD) -> str:
     return date_obj.strftime(format)
 
 

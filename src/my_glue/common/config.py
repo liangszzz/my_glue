@@ -5,7 +5,7 @@ from typing import Dict, Union
 
 from boto3 import client
 
-from my_glue.utils.s3_utils import read_s3_file
+from my_glue.utils.s3_utils import read_s3_file, get_client
 
 
 class ConfigFile(Enum):
@@ -39,7 +39,6 @@ class ConfigType(Enum):
 @dataclass
 class Config:
     config_type: ConfigType
-    s3: Union[None, client]
     bucket: Union[None, str]
     prefix: Union[None, str]
     file_path: Union[None, str]
@@ -47,7 +46,6 @@ class Config:
     def load_config(self) -> Dict[str, str]:
         if (
                 self.config_type == ConfigType.S3
-                and self.s3 is not None
                 and self.bucket is not None
                 and self.prefix is not None
         ):
@@ -63,7 +61,7 @@ class Config:
         return self.read_config_to_dict(config)
 
     def load_config_from_s3(self) -> Dict[str, str]:
-        content = read_s3_file(self.s3, self.bucket, self.prefix)
+        content = read_s3_file(get_client(), self.bucket, self.prefix)
         config = configparser.ConfigParser()
         config.read_string(content)
         return self.read_config_to_dict(config)
