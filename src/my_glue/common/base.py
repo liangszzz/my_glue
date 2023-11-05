@@ -26,8 +26,6 @@ class Base(ABC):
 
         self.dict: Dict[str, str] = {}
 
-        self.dfs: List[DataFrame] = []
-
     def init_config(self, config: Config) -> None:
         self.dict = config.load_config()
 
@@ -95,12 +93,18 @@ class Base(ABC):
         self.commit_job()
         self.logger_end()
 
-    def load_s3_file(self, section: str) -> DataFrame:
+    def load_s3_file(self, section: str, cache_flag: bool = False, create_view_flag: bool = True,
+                     prefix_fuc=None) -> DataFrame:
         bucket = self.dict[f"{section}.{InputOutputConfig.BUCKET.value}"]
+
         prefix = self.dict[f"{section}.{InputOutputConfig.PATH.value}"]
+        if prefix_fuc is not None:
+            prefix = prefix_fuc(prefix)
+
         view_name = self.dict[f"{section}.{InputOutputConfig.TABLE_NAME.value}"]
         required = self.dict[f"{section}.{InputOutputConfig.REQUIRED.value}"]
         schema = self.dict[f"{section}.{InputOutputConfig.SCHEMA.value}"]
+
         file_type = self.dict[f"{section}.{InputOutputConfig.TYPE.value}"]
 
         if file_type == InputOutType.S3_DIR.value:
@@ -130,11 +134,12 @@ class Base(ABC):
                 else:
                     df = self.context.createDataFrame([], schema)
         else:
-            raise Exception("not use exception")
-        self.dfs.append(df)
-        df.cache()
-        df.createOrReplaceTempView(view_name)
-        return None
+            raise Exception("not support exception")
+        if cache_flag:
+            df.cache()
+        if create_view_flag:
+            df.createOrReplaceTempView(view_name)
+        return df
 
     def export_to_s3(self, section: str, df: DataFrame) -> None:
         file_type = self.dict[f"{section}.{InputOutputConfig.TYPE.value}"]

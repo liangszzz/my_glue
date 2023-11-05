@@ -43,5 +43,5 @@ class Etl(Base):
 if __name__ == "__main__":
     context = glue_utils.get_glue_context()
     s3 = s3_utils.get_client()
-    config = Config(ConfigType.S3, s3, "ryozen-glue", "etl002/etl002.ini", None)
+    config = Config(ConfigType.S3, s3, "ryozen-glue", "etl002/etl003.ini", None)
     Etl(context, s3, config).run()

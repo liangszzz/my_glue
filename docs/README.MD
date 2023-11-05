@@ -1,5 +1,3 @@
-yum install ncompress
-
 aiobotocore==2.4.1
 aiohttp==3.8.3
 aioitertools==0.11.0
