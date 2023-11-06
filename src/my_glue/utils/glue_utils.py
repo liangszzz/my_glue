@@ -3,7 +3,6 @@ from typing import Any, Dict, List, Union
 
 from awsglue import DynamicFrame
 from awsglue.context import DataFrame, GlueContext
-from boto3 import client
 from pyspark.context import SparkContext
 from pyspark.sql.types import StructType
 
@@ -43,6 +42,7 @@ def load_df_from_s3(
         s3_path (str): The S3 Full path. s3://bucket/path or [s3://bucket/path, s3://bucket/path]
         format_options (dict): The format options, defaults to csv
         format (str): The format of the file, defaults to csv
+        schema (str): The schema
     Returns:
         DataFrame: The resulting `DataFrame`.
     """

@@ -108,7 +108,11 @@ def rename_s3_file(
 
     Args:
         s3 (boto3.client): the S3 client.
-        bucket (str): the S3 bucket.
+        input_bucket (str): the S3 bucket.
+        output_bucket (str): the S3 bucket.
+        input_path (str): the S3 path.
+        output_path (str): the S3 path.
+        delete (bool): whether to delete the original file
     Returns:
         None
     """
