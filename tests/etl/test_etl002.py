@@ -12,7 +12,7 @@ def test_run(glue_context, s3, caplog, tmpdir, local_pre, upload_data):
     etl.run()
 
 
-def test_run2(glue_context, s3, caplog, local_pre):
+def test_run2(glue_context, s3, caplog, local_pre, upload_data):
     upload_dir_or_file(f"{local_pre}/tests/resources/etl002/input1", s3, "ryo-input1")
     df1 = load_df_from_s3(glue_context, "s3://ryo-input1/etl002/user.csv")
     df2 = load_df_from_s3(glue_context, "s3://ryo-input1/etl002/user2.csv")
