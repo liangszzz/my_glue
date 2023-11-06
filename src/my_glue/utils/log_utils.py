@@ -1,14 +1,20 @@
 import datetime
 import logging
 from logging.handlers import RotatingFileHandler
+import os
 
 import pytz
+
+current_module_path = os.getcwd()
+index = current_module_path.index("my_glue")
+current_module_path = current_module_path[0:index + 7]
 
 
 def get_logger(name):
     logger = logging.getLogger(name)
     logger.setLevel(logging.DEBUG)
-    file_handler = RotatingFileHandler("/home/glue_user/workspace/my_glue/log.log", encoding="utf-8", maxBytes=2 * 1024 * 1024, backupCount=1)
+    file_handler = RotatingFileHandler(f"{current_module_path}/log.log", encoding="utf-8",
+                                       maxBytes=2 * 1024 * 1024, backupCount=1)
     file_handler.setLevel(logging.DEBUG)
 
     stream_handler = logging.StreamHandler()

@@ -1,9 +1,9 @@
+import os
 import shutil
 import sys
 
 import pytest
 from awsglue.context import GlueContext, SparkSession
-from boto3 import client as client
 
 from my_glue.utils import log_utils
 from my_glue.utils.s3_utils import get_client
@@ -18,6 +18,10 @@ region_name = "ap-northeast-1"
 
 logger = log_utils.get_logger(__name__)
 
+
+current_module_path = os.getcwd()
+index = current_module_path.index("my_glue")
+current_module_path = current_module_path[0:index + 7]
 
 @pytest.fixture(scope="function", autouse=True)
 def clear_sys_argv():
@@ -44,6 +48,7 @@ def glue_context():
         .config("com.amazonaws.services.s3a.enableV4", "true")
         .getOrCreate()
     )
+    spark_context.sparkContext.setLogLevel("INFO")
 
     return GlueContext(spark_context)
 
@@ -67,7 +72,7 @@ def local_pre():
         shutil.rmtree("/home/glue_user/workspace/my_glue/download")
     except:
         pass
-    return "/home/glue_user/workspace/my_glue/"
+    return current_module_path
 
 
 def s3_create_bucket(s3):

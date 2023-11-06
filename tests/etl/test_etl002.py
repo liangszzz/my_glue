@@ -7,8 +7,8 @@ from my_glue.utils.s3_utils import upload_dir_or_file
 
 
 def test_run(glue_context, s3, caplog, tmpdir, local_pre, upload_data):
-    config = Config(ConfigType.S3, s3, "ryo-input0", "etl002.ini", None)
-    etl = Etl(glue_context, s3, config)
+    config = Config(ConfigType.S3, "ryo-input0", "etl002.ini", None)
+    etl = Etl(glue_context, config)
     etl.run()
 
 

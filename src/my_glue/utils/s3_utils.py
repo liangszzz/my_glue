@@ -139,7 +139,7 @@ def upload_dir_or_file(local_path: str, s3: client, bucket: str):
             file_path = os.path.join(root, file)
             if os.path.isfile(file_path):
                 s3_key = os.path.join("", os.path.relpath(file_path, local_path))
-                s3.upload_file(file_path, bucket, s3_key)
+                s3.upload_file(file_path, bucket, s3_key.replace("\\", "/", -1))
             else:
                 upload_dir_or_file(file_path, s3, bucket)
 

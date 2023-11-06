@@ -114,7 +114,8 @@ def convert_dynamic_frame_to_data_frame(context: GlueContext, df: DynamicFrame, 
 def export_data_frame_to_csv_dir(
         df: DataFrame,
         s3_path: str,
-        repartition: int = 10,
+        repartition: Union[int, None] = None,
+        max_records_per_file: int = 500000,
         options: Dict[str, Any] = {
             "encoding": "utf-8",
             "quote": '"',
@@ -133,11 +134,14 @@ def export_data_frame_to_csv_dir(
         s3_path (str): The S3 path.
         repartition (int): The number of partitions.
         options (Dict[str, Any]): The options
+        max_records_per_file (int): The max records per file
 
     Returns:
         None
     """
-    df.repartition(repartition).write.mode("overwrite").option("maxRecordsPerFile", 500000).csv(s3_path, **options)
+    if repartition is not None:
+        df = df.repartition(repartition)
+    df.write.mode("overwrite").option("maxRecordsPerFile", max_records_per_file).csv(s3_path, **options)
 
 
 def export_data_frame_to_catalog(
