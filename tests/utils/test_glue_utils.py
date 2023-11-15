@@ -1,6 +1,6 @@
-from my_glue.utils import glue_utils, log_utils
+from awsglue.context import GlueContext
 
-from awsglue.context import DataFrame, GlueContext
+from my_glue.utils import glue_utils, log_utils
 
 logger = log_utils.get_logger(__name__)
 
@@ -17,6 +17,6 @@ def test_get_data_frame_from_catalog(glue_context) -> None:
 def test_create_null_df(glue_context: GlueContext) -> None:
     df = glue_context.createDataFrame([], "id string")
     df.show()
-    df2=glue_context.sparkSession.createDataFrame([],"id string")
+    df2 = glue_context.sparkSession.createDataFrame([], "id string")
     df2.show()
     assert True

@@ -1,4 +1,4 @@
-import time
+from time import perf_counter
 
 from my_glue.utils.log_utils import get_logger
 
@@ -7,9 +7,9 @@ logger = get_logger(__name__)
 
 def time_decorator(func):
     def wrapper(*args, **kwargs) -> func:
-        start = time.time()
+        start = perf_counter()
         res = func(*args, **kwargs)
-        logger.info(f"{func.__name__} execute time: {time.time() - start}")
+        logger.info(f"{func.__name__} execute time: {perf_counter() - start}")
         return res
 
     return wrapper

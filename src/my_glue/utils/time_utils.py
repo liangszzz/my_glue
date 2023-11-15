@@ -1,4 +1,4 @@
-from datetime import date, datetime
+from datetime import date, datetime, timedelta
 
 import pytz
 
@@ -15,7 +15,7 @@ def get_today() -> date:
 
 
 def get_yesterday() -> date:
-    return datetime.now(tz).date() - datetime.timedelta(days=1)
+    return datetime.now(tz).date() - timedelta(days=1)
 
 
 def get_now() -> datetime:
