@@ -15,6 +15,7 @@ def time_decorator(func):
     return wrapper
 
 
+@time_decorator
 def exception_decorator(func):
     def wrapper(*args, **kwargs) -> func:
         try:

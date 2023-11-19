@@ -37,6 +37,8 @@ class InputOutputConfig(Enum):
     TABLE_NAME = "table_name"
     REQUIRED = "required"
     SCHEMA = "schema"
+    ERROR_MSG = "error_msg"
+    SUCCESS_MSG = "success_msg"
 
 
 class ConfigType(Enum):
@@ -53,19 +55,19 @@ class Config:
 
     def load_config(self) -> Dict[str, str]:
         if self.config_type == ConfigType.S3 and self.bucket is not None and self.prefix is not None:
-            return self.load_config_from_s3()
+            return self.load_config_from_s3(self.bucket, self.prefix)
         elif self.config_type == ConfigType.LOCAL and self.file_path is not None:
-            return self.load_config_from_file()
+            return self.load_config_from_file(self.file_path)
         else:
             raise Exception("config file read exception")
 
-    def load_config_from_file(self) -> Dict[str, str]:
+    def load_config_from_file(self, file_path: str) -> Dict[str, str]:
         config = configparser.ConfigParser()
-        config.read(self.file_path)
+        config.read(file_path)
         return self.read_config_to_dict(config)
 
-    def load_config_from_s3(self) -> Dict[str, str]:
-        content = read_s3_file(get_client(), self.bucket, self.prefix)
+    def load_config_from_s3(self, bucket: str, prefix: str) -> Dict[str, str]:
+        content = read_s3_file(get_client(), bucket, prefix)
         config = configparser.ConfigParser()
         config.read_string(content)
         return self.read_config_to_dict(config)

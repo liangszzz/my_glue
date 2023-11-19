@@ -135,6 +135,9 @@ class Base(ABC):
         required = self.config_dict[f"{section}.{InputOutputConfig.REQUIRED.value}"]
         schema = self.config_dict[f"{section}.{InputOutputConfig.SCHEMA.value}"]
         file_type = self.config_dict[f"{section}.{InputOutputConfig.TYPE.value}"]
+
+        success_msg = self.config_dict[f"{section}.{InputOutputConfig.SUCCESS_MSG.value}"]
+        error_msg = self.config_dict[f"{section}.{InputOutputConfig.ERROR_MSG.value}"]
         if format_map is not None:
             bucket = bucket.format_map(format_map)
             prefix = prefix.format_map(format_map)
@@ -142,6 +145,8 @@ class Base(ABC):
             required = required.format_map(format_map)
             schema = schema.format_map(format_map)
             file_type = file_type.format_map(format_map)
+            success_msg = success_msg.format_map(format_map)
+            error_msg = error_msg.format_map(format_map)
 
         s3 = get_client()
 
@@ -155,14 +160,15 @@ class Base(ABC):
             )
         else:
             if required == "True":
+                self.logger.error(error_msg.format_map({"bucket": bucket, "prefix": prefix}))
                 raise exceptions.S3FileNotExistException(f"s3://{bucket}/{prefix}")
             else:
                 df = self.context.createDataFrame([], schema)
-
         if cache_flag:
             df.cache()
         if create_view_flag:
             df.createOrReplaceTempView(view_name)
+        self.logger.info(success_msg)
         return df
 
     def export_to_s3(
@@ -178,10 +184,15 @@ class Base(ABC):
         file_type = self.config_dict[f"{section}.{InputOutputConfig.TYPE.value}"]
         bucket = self.config_dict[f"{section}.{InputOutputConfig.BUCKET.value}"]
         prefix = self.config_dict[f"{section}.{InputOutputConfig.PATH.value}"]
+        success_msg = self.config_dict[f"{section}.{InputOutputConfig.SUCCESS_MSG.value}"]
+        error_msg = self.config_dict[f"{section}.{InputOutputConfig.ERROR_MSG.value}"]
+
         if format_map is not None:
             bucket = bucket.format_map((format_map))
             prefix = prefix.format_map((format_map))
             file_type = file_type.format_map((format_map))
+            success_msg = success_msg.format_map((format_map))
+            error_msg = error_msg.format_map((format_map))
 
         if InputOutType.S3_DIR_PARQUET.value == file_type:
             glue_utils.export_data_frame_to_parquet(df, f"s3://{bucket}/{prefix}", options=optional_args)
