@@ -8,10 +8,10 @@ from pyspark.sql.functions import col, to_date, trim, regexp_replace, encode, su
 class Etl(Base):
     def __init__(self, context: GlueContext, config: Config) -> None:
         super().__init__(context, config)
-        self.charset = "shift-jis"
 
     def handler_args(self) -> None:
         super().handler_args()
+        self.charset = self.args["charset"]
 
     def load_data(self) -> None:
         self.defalut_fixed_options["encoding"] = self.charset
@@ -26,8 +26,7 @@ class Etl(Base):
             },
             optional_args=self.defalut_fixed_options,
         )
-        df.show()
-        df = df.withColumnRenamed("_c0", "value").withColumn("value", encode("value", self.charset))
+        df = df.withColumn("_c0", encode("_c0", self.charset).alias("value"))
         self.input_df = df
 
     def handle_data(self) -> None:
