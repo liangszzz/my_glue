@@ -21,7 +21,8 @@ logger = log_utils.get_logger(__name__)
 
 current_module_path = os.getcwd()
 index = current_module_path.index("my_glue")
-current_module_path = current_module_path[0:index + 7]
+current_module_path = current_module_path[: index + 7]
+
 
 @pytest.fixture(scope="function", autouse=True)
 def clear_sys_argv():
@@ -69,9 +70,9 @@ def s3_handler(s3):
 @pytest.fixture(scope="session", autouse=False)
 def local_pre():
     try:
-        shutil.rmtree("/home/glue_user/workspace/my_glue/download")
-    except:
-        pass
+        shutil.rmtree(f"{current_module_path}/download")
+    except Exception as e:
+        logger.error(e)
     return current_module_path
 
 
@@ -99,25 +100,23 @@ def s3_create_bucket(s3):
 def s3_delete_bucket(s3):
     logger.info("--------------------------start s3 bucket delete---------------------------")
     for i in range(0, 10):
-        try:
-            response = s3.list_objects_v2(Bucket=input_bucket + str(i))
-            if "Contents" in response:
-                objects = response["Contents"]
-                for obj in objects:
-                    file_key = obj["Key"]
-                    s3.delete_object(Bucket=input_bucket + str(i), Key=file_key)
-            s3.delete_bucket(Bucket=input_bucket + str(i))
-        except:
-            pass
+        delete_s3_bucket(input_bucket + str(i))
+
     for i in range(0, 10):
-        try:
-            response = s3.list_objects_v2(Bucket=output_bucket + str(i))
-            if "Contents" in response:
-                objects = response["Contents"]
-                for obj in objects:
-                    file_key = obj["Key"]
-                    s3.delete_object(Bucket=output_bucket + str(i), Key=file_key)
-            s3.delete_bucket(Bucket=output_bucket + str(i))
-        except:
-            pass
+        delete_s3_bucket(output_bucket + str(i))
+
     logger.info("--------------------------end s3 bucket delete---------------------------")
+
+
+def delete_s3_bucket(bucket: str):
+    s3 = get_client()
+    try:
+        response = s3.list_objects_v2(Bucket=bucket)
+        if "Contents" in response:
+            objects = response["Contents"]
+            for obj in objects:
+                file_key = obj["Key"]
+                s3.delete_object(Bucket=bucket, Key=file_key)
+        s3.delete_bucket(Bucket=bucket)
+    except Exception as e:
+        logger.error(e)

@@ -3,8 +3,6 @@ from dataclasses import dataclass
 from enum import Enum
 from typing import Dict, Union
 
-from boto3 import client
-
 from my_glue.utils.s3_utils import get_client, read_s3_file
 
 
@@ -16,10 +14,20 @@ class ConfigFile(Enum):
 
 
 class InputOutType(Enum):
-    S3_DIR = "s3-dir"
-    S3_CSV = "s3-csv"
-    S3_TEXT = "s3-text"
+    # directory
+    S3_DIR_CSV = "s3-dir-csv"
+    S3_DIR_TSV = "s3-dir-tsv"
+    S3_DIR_TXT = "s3-dir-txt"
+    S3_DIR_PARQUET = "s3-dir-parquet"
+    # table
     CATALOG = "catalog"
+    MYSQL = "mysql"
+    REDSHIFT = "redshift"
+    # file
+    S3_CSV = "s3-csv"
+    S3_TSV = "s3-tsv"
+    S3_TEXT = "s3-text"
+    S3_FIXED = "s3-fixed"
 
 
 class InputOutputConfig(Enum):
@@ -44,11 +52,7 @@ class Config:
     file_path: Union[None, str]
 
     def load_config(self) -> Dict[str, str]:
-        if (
-                self.config_type == ConfigType.S3
-                and self.bucket is not None
-                and self.prefix is not None
-        ):
+        if self.config_type == ConfigType.S3 and self.bucket is not None and self.prefix is not None:
             return self.load_config_from_s3()
         elif self.config_type == ConfigType.LOCAL and self.file_path is not None:
             return self.load_config_from_file()

@@ -2,24 +2,20 @@ from awsglue.context import GlueContext
 from my_glue.common.base import Base
 from my_glue.common.config import Config, ConfigType
 from my_glue.utils import glue_utils
-from pyspark.sql.functions import col, to_date, trim, regexp_replace
+from pyspark.sql.functions import col, to_date, trim, regexp_replace, encode, substring, decode
 
 
 class Etl(Base):
     def __init__(self, context: GlueContext, config: Config) -> None:
         super().__init__(context, config)
+        self.charset = "shift-jis"
 
     def handler_args(self) -> None:
         super().handler_args()
 
     def load_data(self) -> None:
-        optional_args = None
-        if "csv" in self.args["input_file_type"] or "txt" in self.args["input_file_type"]:
-            optional_args = self.defalut_csv_options
-        elif "tsv" in self.args["input_file_type"]:
-            optional_args = self.defalut_tsv_options
-
-        self.input_df = self.load_s3_file(
+        self.defalut_fixed_options["encoding"] = self.charset
+        df = self.load_s3_file(
             "input1",
             create_view_flag=False,
             format_map={
@@ -28,15 +24,29 @@ class Etl(Base):
                 "input_file_bucket": self.args["input_file_bucket"],
                 "input_file_path": self.args["input_file_path"],
             },
-            optional_args=optional_args,
+            optional_args=self.defalut_fixed_options,
         )
+        df.show()
+        df = df.withColumnRenamed("_c0", "value").withColumn("value", encode("value", self.charset))
+        self.input_df = df
 
     def handle_data(self) -> None:
+        df = self.input_df
+        split_count = self.args["split_count"].split(",")
+        split_name = self.args["split_name"].split(",")
+
+        start = 0
+        for i in range(len(split_count)):
+            length = int(split_count[i])
+            df = df.withColumn(split_name[i], decode(substring("value", start + 1, length), self.charset))
+            start = start + length
+        df = df.drop("value")
+
         decimal_columns = self.args["decimal_columns"].split(",")
         date_columns = self.args["date_columns"].split(",")
 
-        columns = self.input_df.columns
-        df = self.input_df
+        columns = df.columns
+
         for column in columns:
             # a.trim
             df = df.withColumn(column, regexp_replace(trim(col(column)), "\\.$", ""))
@@ -49,7 +59,6 @@ class Etl(Base):
         self.export_df = df
 
     def export_data(self) -> None:
-        self.export_df.show()
         self.export_to_s3(
             "output1",
             self.export_df,
@@ -64,5 +73,5 @@ class Etl(Base):
 
 if __name__ == "__main__":
     context = glue_utils.get_glue_context()
-    config = Config(ConfigType.S3, "ryozen-glue", "etl001/etl001.ini", None)
+    config = Config(ConfigType.S3, "ryozen-glue", "etl001/etl001_fixed.ini", None)
     Etl(context, config).run()

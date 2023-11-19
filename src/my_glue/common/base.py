@@ -1,14 +1,13 @@
 import sys
 from abc import ABC
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Union
 
 from awsglue.context import DataFrame, GlueContext
 from awsglue.job import Job
 from awsglue.utils import getResolvedOptions
 
 from my_glue.common import exceptions
-from my_glue.common.config import (Config, ConfigFile, InputOutputConfig,
-                                   InputOutType)
+from my_glue.common.config import Config, ConfigFile, InputOutputConfig, InputOutType
 from my_glue.utils import glue_utils, s3_utils, sys_utils, time_utils
 from my_glue.utils.log_utils import get_logger
 from my_glue.utils.s3_utils import get_client
@@ -16,7 +15,7 @@ from my_glue.utils.s3_utils import get_client
 
 class Base(ABC):
     def __init__(self, context: GlueContext, config: Config) -> None:
-        self.args = []
+        self.args = {}
         self.job = None
         self.context = context
         self.spark = context.spark_session
@@ -25,6 +24,30 @@ class Base(ABC):
         self.require_params: List[str] = []
         self.config_dict: Dict[str, str] = {}
         self.config = config
+
+        self.defalut_csv_options = {
+            "header": "true",
+            "encoding": "utf-8",
+            "quote": '"',
+            "escape": '"',
+            "quoteAll": "true",
+        }
+
+        self.defalut_tsv_options = {
+            "header": "true",
+            "encoding": "utf-8",
+            "quote": '"',
+            "escape": '"',
+            "quoteAll": "true",
+            "delimiter": "\t",
+        }
+
+        self.defalut_parquet_options = {}
+
+        self.defalut_fixed_options = {
+            "header": "false",
+            "encoding": "utf-8",
+        }
 
     def init_config(self) -> None:
         self.config_dict = self.config.load_config()
@@ -67,7 +90,7 @@ class Base(ABC):
         self.action_date = time_utils.get_date_str(date_obj, time_utils.FORMAT_YYYYMMDD)
 
     def commit_job(self) -> None:
-        self.job.commit()
+        self.job.commit()  # type: ignore
 
     def load_data(self) -> None:
         return None
@@ -98,64 +121,72 @@ class Base(ABC):
         self.commit_job()
         self.logger_end()
 
-    def load_s3_file(self, section: str, cache_flag: bool = False, create_view_flag: bool = True,
-                     prefix_map: Dict[str, str] = None) -> DataFrame:
+    def load_s3_file(
+        self,
+        section: str,
+        cache_flag: bool = False,
+        create_view_flag: bool = True,
+        format_map: Union[None, Dict[str, str]] = None,
+        optional_args: Union[None, Dict[str, Any]] = None,
+    ) -> DataFrame:
         bucket = self.config_dict[f"{section}.{InputOutputConfig.BUCKET.value}"]
-
         prefix = self.config_dict[f"{section}.{InputOutputConfig.PATH.value}"]
-        if prefix_map is not None:
-            prefix = prefix.format_map(prefix_map)
         view_name = self.config_dict[f"{section}.{InputOutputConfig.TABLE_NAME.value}"]
         required = self.config_dict[f"{section}.{InputOutputConfig.REQUIRED.value}"]
         schema = self.config_dict[f"{section}.{InputOutputConfig.SCHEMA.value}"]
-
         file_type = self.config_dict[f"{section}.{InputOutputConfig.TYPE.value}"]
+        if format_map is not None:
+            bucket = bucket.format_map(format_map)
+            prefix = prefix.format_map(format_map)
+            view_name = view_name.format_map(format_map)
+            required = required.format_map(format_map)
+            schema = schema.format_map(format_map)
+            file_type = file_type.format_map(format_map)
+
         s3 = get_client()
-        if file_type == InputOutType.S3_DIR.value:
-            if s3_utils.check_s3_file_or_dir_exist(s3, bucket, prefix):
-                df = glue_utils.load_df_from_s3(self.context, f"s3://{bucket}/{prefix}")
-            else:
-                if required == "True":
-                    raise exceptions.S3FileNotExistException(f"s3://{bucket}/{prefix}")
-                else:
-                    df = self.context.createDataFrame([], schema)
 
-        elif file_type == InputOutType.S3_CSV.value:
-            if s3_utils.check_s3_file_or_dir_exist(s3, bucket, prefix, dir=False):
-                df = glue_utils.load_df_from_s3(self.context, f"s3://{bucket}/{prefix}")
-            else:
-                if required == "True":
-                    raise exceptions.S3FileNotExistException(f"s3://{bucket}/{prefix}")
-                else:
-                    df = self.context.createDataFrame([], schema)
+        file_format = "csv"
+        if "parquet" in file_type:
+            file_format = "parquet"
 
-        elif file_type == InputOutType.S3_TEXT.value:
-            if s3_utils.check_s3_file_or_dir_exist(s3, bucket, prefix, dir=False):
-                df = glue_utils.load_df_from_s3_text(self.context, f"s3://{bucket}/{prefix}")
-            else:
-                if required == "True":
-                    raise exceptions.S3FileNotExistException(f"s3://{bucket}/{prefix}")
-                else:
-                    df = self.context.createDataFrame([], schema)
+        if s3_utils.check_s3_file_or_dir_exist(s3, bucket, prefix):
+            df = glue_utils.load_df_from_s3(
+                self.context, f"s3://{bucket}/{prefix}", file_format=file_format, options=optional_args
+            )
         else:
-            raise Exception("not support exception")
+            if required == "True":
+                raise exceptions.S3FileNotExistException(f"s3://{bucket}/{prefix}")
+            else:
+                df = self.context.createDataFrame([], schema)
+
         if cache_flag:
             df.cache()
         if create_view_flag:
             df.createOrReplaceTempView(view_name)
         return df
 
-    def export_to_s3(self, section: str, df: DataFrame, prefix_map: Dict[str, str] = None) -> None:
+    def export_to_s3(
+        self,
+        section: str,
+        df: DataFrame,
+        format_map: Union[None, Dict[str, str]] = None,
+        optional_args: Union[None, Dict[str, Any]] = None,
+    ) -> None:
+        if optional_args is not None:
+            optional_args["compression"] = "gzip"
+
         file_type = self.config_dict[f"{section}.{InputOutputConfig.TYPE.value}"]
         bucket = self.config_dict[f"{section}.{InputOutputConfig.BUCKET.value}"]
         prefix = self.config_dict[f"{section}.{InputOutputConfig.PATH.value}"]
-        if prefix_map is not None:
-            prefix = prefix.format_map((prefix_map))
-        if file_type == InputOutType.S3_DIR.value:
-            glue_utils.export_data_frame_to_csv_dir(df, f"s3://{bucket}/{prefix}")
+        if format_map is not None:
+            bucket = bucket.format_map((format_map))
+            prefix = prefix.format_map((format_map))
+            file_type = file_type.format_map((format_map))
 
-        elif file_type == InputOutType.S3_CSV.value:
-            glue_utils.export_data_frame_to_csv(df, bucket, prefix)
+        if InputOutType.S3_DIR_PARQUET.value == file_type:
+            glue_utils.export_data_frame_to_parquet(df, f"s3://{bucket}/{prefix}", options=optional_args)
+        elif "csv" in file_type:
+            glue_utils.export_data_frame_to_csv_dir(df, f"s3://{bucket}/{prefix}", options=optional_args)
         else:
             raise Exception("not use exception")
         return None
