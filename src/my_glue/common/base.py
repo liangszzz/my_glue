@@ -1,5 +1,4 @@
 import sys
-from abc import ABC
 from typing import Any, Dict, List, Union
 
 from awsglue.context import DataFrame, GlueContext
@@ -13,7 +12,7 @@ from my_glue.utils.log_utils import get_logger
 from my_glue.utils.s3_utils import get_client
 
 
-class Base(ABC):
+class Base:
     def __init__(self, context: GlueContext, config: Config) -> None:
         self.args = {}
         self.job = None

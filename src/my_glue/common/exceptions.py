@@ -15,8 +15,8 @@ def time_decorator(func):
     return wrapper
 
 
-@time_decorator
 def exception_decorator(func):
+    @time_decorator
     def wrapper(*args, **kwargs) -> func:
         try:
             logger.info(f"Start {func.__name__}")

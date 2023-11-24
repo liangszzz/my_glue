@@ -26,7 +26,7 @@ class Etl(Base):
             },
             optional_args=self.defalut_fixed_options,
         )
-        df = df.withColumn("_c0", encode("_c0", self.charset).alias("value"))
+        df = df.withColumn("value", encode("_c0", self.charset))
         self.input_df = df
 
     def handle_data(self) -> None:
