@@ -6,13 +6,13 @@ from my_glue.utils.s3_utils import upload_dir_or_file, download_s3_bucket
 
 
 def test_run(glue_context, s3, caplog, tmpdir, local_pre, upload_data):
-    config = Config(ConfigType.S3, "ryo-input0", "etl002.ini", None)
+    config = Config(ConfigType.S3, "cdp-input0", "etl002.ini", None)
     etl = Etl(glue_context, config)
     etl.run()
-    download_s3_bucket(s3, "ryo-output1", f"{local_pre}/download/ryo-output1")
+    download_s3_bucket(s3, "cdp-output1", f"{local_pre}/download/cdp-output1")
 
 
 @pytest.fixture(scope="function")
 def upload_data(s3, local_pre):
-    upload_dir_or_file(f"{local_pre}/tests-resources/etl002/config", s3, "ryo-input0")
-    upload_dir_or_file(f"{local_pre}/tests-resources/etl002/ryo-output1", s3, "ryo-output1")
+    upload_dir_or_file(f"{local_pre}/tests-resources/etl002/config", s3, "cdp-input0")
+    upload_dir_or_file(f"{local_pre}/tests-resources/etl002/cdp-output1", s3, "cdp-output1")

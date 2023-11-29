@@ -8,8 +8,8 @@ from awsglue.context import GlueContext, SparkSession
 from my_glue.utils import log_utils
 from my_glue.utils.s3_utils import get_client
 
-input_bucket = "ryo-input"
-output_bucket = "ryo-output"
+input_bucket = "cdp-input"
+output_bucket = "cdp-output"
 
 endpoint_url = "http://localstack:4566"
 aws_access_key_id = "test"
@@ -24,19 +24,32 @@ index = current_module_path.index("my_glue")
 current_module_path = current_module_path[: index + 7]
 
 
-@pytest.fixture(scope="function", autouse=True)
-def clear_sys_argv():
-    logger.info("--------------------------start args init---------------------------")
-    sys.argv.clear()
-    sys.argv.append("--JOB_NAME")
-    sys.argv.append("test")
-    sys.argv.append("--JOB_NAME=test")
+@pytest.fixture(scope="function")
+def s3():
+    logger.info("--------------------------start s3 init---------------------------")
     sys.argv.append("--dev")
-    logger.info("--------------------------end args init---------------------------")
+    return get_client()
 
 
-@pytest.fixture(scope="session")
-def glue_context():
+@pytest.fixture(scope="function", autouse=False)
+def local_pre():
+    try:
+        shutil.rmtree(f"{current_module_path}/download")
+    except Exception as e:
+        logger.error(e)
+    return current_module_path
+
+
+@pytest.fixture(scope="function", autouse=True)
+def s3_handler(s3):
+    s3_delete_bucket(s3)
+    s3_create_bucket(s3)
+
+
+@pytest.fixture(scope="function")
+def glue_context(tmpdir):
+    clear_sys_argv()
+
     spark_context = (
         SparkSession.builder.config("spark.hadoop.fs.s3a.endpoint", endpoint_url)
         .config("fs.s3a.access.key", aws_access_key_id)
@@ -47,33 +60,19 @@ def glue_context():
         .config("fs.s3a.path.style.access", "true")
         .config("fs.s3a.connection.ssl.enabled", "false")
         .config("com.amazonaws.services.s3a.enableV4", "true")
+        .config("spark.driver.host", "localhost")
         .getOrCreate()
     )
     spark_context.sparkContext.setLogLevel("INFO")
 
-    return GlueContext(spark_context)
+    context = GlueContext(spark_context)
+    yield (context)
 
-
-@pytest.fixture(scope="session")
-def s3():
-    logger.info("--------------------------start s3 init---------------------------")
-    sys.argv.append("--dev")
-    return get_client()
-
-
-@pytest.fixture(scope="function", autouse=True)
-def s3_handler(s3):
-    s3_delete_bucket(s3)
-    s3_create_bucket(s3)
-
-
-@pytest.fixture(scope="session", autouse=False)
-def local_pre():
+    spark_context.stop()
     try:
-        shutil.rmtree(f"{current_module_path}/download")
+        shutil.rmtree(tmpdir)
     except Exception as e:
         logger.error(e)
-    return current_module_path
 
 
 def s3_create_bucket(s3):
@@ -118,5 +117,15 @@ def delete_s3_bucket(bucket: str):
                 file_key = obj["Key"]
                 s3.delete_object(Bucket=bucket, Key=file_key)
         s3.delete_bucket(Bucket=bucket)
-    except Exception as e:
-        logger.error(e)
+    except Exception:
+        pass
+
+
+def clear_sys_argv():
+    logger.info("--------------------------start args init---------------------------")
+    sys.argv.clear()
+    sys.argv.append("--JOB_NAME")
+    sys.argv.append("test")
+    sys.argv.append("--JOB_NAME=test")
+    sys.argv.append("--dev")
+    logger.info("--------------------------end args init---------------------------")
