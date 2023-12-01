@@ -1,8 +1,10 @@
 from awsglue.context import GlueContext
+from pyspark.sql.functions import (col, decode, encode, regexp_replace,
+                                   substring, to_date, trim)
+
 from my_glue.common.base import Base
 from my_glue.common.config import Config, ConfigType
 from my_glue.utils import glue_utils
-from pyspark.sql.functions import col, to_date, trim, regexp_replace, encode, substring, decode
 
 
 class Etl(Base):

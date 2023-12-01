@@ -1,9 +1,10 @@
-import pytest
 import sys
+
+import pytest
 
 from my_glue.common.config import Config, ConfigType
 from my_glue.etl.etl001 import Etl
-from my_glue.utils.s3_utils import upload_dir_or_file, download_s3_bucket
+from my_glue.utils.s3_utils import download_s3_bucket, upload_dir_or_file
 
 
 def test_run_csv(glue_context, s3, caplog, tmpdir, local_pre, upload_data):

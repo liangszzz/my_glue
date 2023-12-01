@@ -1,5 +1,7 @@
-from awsglue.context import DataFrame
 from typing import Dict
+
+from awsglue.context import DataFrame
+
 from my_glue.utils import glue_utils
 
 

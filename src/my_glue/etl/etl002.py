@@ -11,6 +11,7 @@ class Etl(Base):
 
     def load_data(self) -> None:
         self.input_df = self.load_s3_file("input1", False, False, None)
+        self.input_df.show()
 
     def export_data(self) -> None:
         self.export_to_s3("output1", self.input_df)

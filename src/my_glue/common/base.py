@@ -6,7 +6,8 @@ from awsglue.job import Job
 from awsglue.utils import getResolvedOptions
 
 from my_glue.common import exceptions
-from my_glue.common.config import Config, ConfigFile, InputOutputConfig, InputOutType
+from my_glue.common.config import (Config, ConfigFile, InputOutputConfig,
+                                   InputOutType)
 from my_glue.utils import glue_utils, s3_utils, sys_utils, time_utils
 from my_glue.utils.log_utils import get_logger
 from my_glue.utils.s3_utils import get_client

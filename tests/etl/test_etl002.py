@@ -2,7 +2,7 @@ import pytest
 
 from my_glue.common.config import Config, ConfigType
 from my_glue.etl.etl002 import Etl
-from my_glue.utils.s3_utils import upload_dir_or_file, download_s3_bucket
+from my_glue.utils.s3_utils import download_s3_bucket, upload_dir_or_file
 
 
 def test_run(glue_context, s3, caplog, tmpdir, local_pre, upload_data):
@@ -15,4 +15,4 @@ def test_run(glue_context, s3, caplog, tmpdir, local_pre, upload_data):
 @pytest.fixture(scope="function")
 def upload_data(s3, local_pre):
     upload_dir_or_file(f"{local_pre}/tests-resources/etl002/config", s3, "cdp-input0")
-    upload_dir_or_file(f"{local_pre}/tests-resources/etl002/cdp-output1", s3, "cdp-output1")
+    upload_dir_or_file(f"{local_pre}/tests-resources/etl002/input1", s3, "cdp-input1")
